@@ -1,0 +1,122 @@
+# AgentMemory + Ollama infra fragment for the Claude Code boilerplate.
+#
+# Drop these two services into your stack's docker-compose.yml (or `docker compose
+# -f` them alongside it). They are the only infra the agentic layer needs:
+#   - ollama       : local LLM (compress) + embeddings, OpenAI-compatible /v1
+#   - agentmemory  : the per-project memory service Claude Code hooks talk to
+#
+# Everything else (your microservices, Postgres, a vector DB, a broker) joins the
+# same `app-network` and is addressed by container name. Replace <PLACEHOLDER>
+# values and the network name to match your stack.
+#
+# Secrets: none live in this file. The AgentMemory bearer lives in
+# agentmemory.env (see agentmemory.env.example). Generate one with:
+#   openssl rand -hex 32
+#
+# NOTE: `docker compose restart` does NOT reload env_file. After editing
+# agentmemory.env always run `docker compose up -d agentmemory` to recreate.
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  ollama_data:
+  agentmemory_data:
+
+services:
+  # ----------------------------------------------------------------------------
+  # Ollama — local LLM + embeddings. Models auto-pull on start (see ollama/).
+  #
+  # ⚠️  THE GPU BLOCK BELOW IS AN NVIDIA-ON-LINUX EXAMPLE — not portable as-is.
+  #     Pick the runtime that matches your host (SETUP.md, Step 1 walks Claude
+  #     through detecting this and choosing for you):
+  #
+  #     • NVIDIA GPU on Linux/WSL2 → keep this service as written (needs the
+  #       NVIDIA Container Toolkit installed on the host).
+  #     • No GPU / generic CPU host → DELETE the `deploy:` section. Runs CPU-only;
+  #       prefer small models (see ollama/entrypoint.sh sizing notes).
+  #     • Apple Silicon (M-series) Mac → DELETE THIS ENTIRE `ollama:` SERVICE.
+  #       Docker Desktop has NO GPU passthrough on macOS, so containerized Ollama
+  #       is CPU-only and 3–6× slower. Instead run Ollama NATIVELY on the host
+  #       (`brew install ollama` / the .app), start it with
+  #       `OLLAMA_HOST=0.0.0.0:11434 ollama serve`, and point every consumer at
+  #       `http://host.docker.internal:11434/v1` (set OLLAMA_BASE_URL /
+  #       OPENAI_BASE_URL in agentmemory.env accordingly). On Linux hosts,
+  #       host.docker.internal needs:  extra_hosts: ["host.docker.internal:host-gateway"]
+  # ----------------------------------------------------------------------------
+  ollama:
+    build:
+      context: ./ollama
+      dockerfile: Dockerfile
+    container_name: <STACK_PREFIX>-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    # --- NVIDIA-on-Linux only. Delete this `deploy:` block on CPU hosts; delete
+    #     the whole service on Apple Silicon (see the note above). ---
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  # ----------------------------------------------------------------------------
+  # AgentMemory — persistent memory for Claude Code.
+  # Bound to 127.0.0.1 only: the bearer is the only authn, so do NOT expose it
+  # on 0.0.0.0 without adding real auth in front. Reached from Claude Code on the
+  # host (the host is 127.0.0.1). The viewer is served at /agentmemory/viewer.
+  #
+  # Source (agentmemory-src/) and config.yaml are mounted at runtime so that
+  # `git pull && npm run build` inside agentmemory-src/ takes effect on the next
+  # `docker compose up -d agentmemory` without rebuilding the image. Clone the
+  # upstream once:  git clone https://github.com/rohitg00/agentmemory agentmemory-src
+  # (then apply the local-Ollama provider patch — see ADR-0002).
+  # ----------------------------------------------------------------------------
+  agentmemory:
+    build:
+      context: .
+      dockerfile: agentmemory.Dockerfile
+    image: agentmemory:local
+    container_name: <STACK_PREFIX>-agentmemory
+    restart: unless-stopped
+    env_file:
+      - ./agentmemory.env
+    volumes:
+      - ./agentmemory-src:/agentmemory-src:ro
+      - ./agentmemory.iii-config.yaml:/app/config.yaml:ro
+      - agentmemory_data:/data
+    ports:
+      - "127.0.0.1:3111:3111"   # REST API
+      - "127.0.0.1:3112:3112"   # WebSocket streams
+    networks:
+      - app-network
+    healthcheck:
+      # node:20-slim ships neither wget nor curl, so use node's builtin fetch.
+      # The bearer is required because AGENTMEMORY_SECRET is set (else 401).
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3111/agentmemory/health',{headers:{Authorization:'Bearer '+process.env.AGENTMEMORY_SECRET}}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ----------------------------------------------------------------------------
+  # Your services go here. Join app-network and address peers by container name:
+  #   environment:
+  #     OLLAMA_BASE_URL: http://ollama:11434/v1
+  # ----------------------------------------------------------------------------
