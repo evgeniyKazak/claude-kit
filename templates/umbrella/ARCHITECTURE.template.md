@@ -43,6 +43,17 @@ Inside the docker network, address peers by container name:
 | `<broker>` | `<queues/topics>` | `<producer>` | `<consumer>` |
 | `agentmemory_data` volume | observation archive (per-project namespaces) | hooks | recall |
 
+## MCP servers & sources
+
+Authoritative catalog of the MCP servers and data sources available across the stack. This section is injected into every child session via `<architecture-context>`, so it's the single source of truth. Each sub-project documents *its own subset* and usage tips in `<service>/.claude/rules/sources.md` — that file points back here and must not contradict it.
+
+| MCP server | Wired in | Exposes | Best used for |
+|---|---|---|---|
+| `agentmemory` | every project (`.mcp.json`) | `core` 6-tool recall surface | "how did we do X before", finding past work |
+| `<service-mcp>` | `<service>` | `<tools>` | `<good-fit queries>` |
+
+Data sources are the stores in **Shared data** above — reached by container name (`http://<peer>:<port>`), never `localhost`. Read-only ad-hoc queries are fine; writes/DDL go through plan mode.
+
 ## Secrets
 
 - `.env` — stack-wide (DB, object store, third-party tokens)

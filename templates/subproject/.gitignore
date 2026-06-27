@@ -1,0 +1,16 @@
+# Sub-project gitignore. Secrets never get committed — see umbrella security.md.
+.env
+.env.*
+!.env.example
+
+# Local Claude state that should not be shared
+.claude/settings.local.json.bak
+.claude/tasks/*.local.md
+
+# Dependency / build artifacts (uncomment what applies to this service's stack)
+# node_modules/
+# dist/
+# build/
+# __pycache__/
+# .venv/
+# *.pyc

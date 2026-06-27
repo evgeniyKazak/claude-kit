@@ -164,24 +164,61 @@ pull` instead and ignore that script.
 
 For every microservice, copy `templates/subproject/` into `<STACK_ROOT>/<service>/` and adapt:
 
-1. `CLAUDE.template.md` → `<service>/CLAUDE.md`, `CHANGELOG.template.md` → `<service>/CHANGELOG.md`.
+> **Brownfield merge — do NOT overwrite existing files.** When you point this setup at a repo whose
+> services already have their own docs, Claude **merges** the template into what's there instead of
+> replacing it:
+> - **`CLAUDE.md`** — keep every existing service-specific fact (About, Key Rules, commands, structure);
+>   layer in the template's required section order and any missing standard sections (`Sub-project
+>   Context`, `After Completing a Task`). Never drop what the operator already wrote.
+> - **`.claude/rules/workflow.md`** — preserve the service's existing post-task checklist and
+>   forbiddens, and **ensure the mandate block is present** (plan-mode-first on non-trivial tasks,
+>   verify-before-done). The mandate is required in every sub-project — prepend it if the existing
+>   file lacks it; do not duplicate it if it's already there.
+> - **Other rules** (`conventions.md`, `lessons-learned.md`) — append template sections that are
+>   missing; never overwrite existing entries.
+> When a merge is ambiguous, show the operator the merged result before writing.
+
+1. `CLAUDE.template.md` → `<service>/CLAUDE.md` (**merge**, don't overwrite, if one exists — see above),
+   `CHANGELOG.template.md` → `<service>/CHANGELOG.md`.
 2. `.mcp.json` → replace `<AGENTMEMORY_SECRET>`; add service-specific MCP servers if needed.
 3. `.claude/hooks/agentmemory/run.sh` → replace `<STACK_ROOT>`, then `chmod +x` it. **Keep it two
    lines** — all logic lives in the shared runner.
 4. `.claude/settings.local.json` → **keep the full 12-hook block** and the 3-hook SessionStart chain
    (`session-start` → `architecture-context` → `parent-context`) intact.
 5. `.claude/rules/*` → rewrite for this service's language/framework (don't ship another service's
-   `lessons-learned.md`).
-6. `.claude/agents/flow-explainer.md` → fill the Project Quick Reference and adapt Phases 2/4/5 to
+   `lessons-learned.md`). **`workflow.md` must carry the mandate block** (plan-mode-first +
+   verify-before-done); merge it into any existing workflow rather than replacing. Fill
+   `testing.md` (real test command, where tests live, the bar) and `sources.md` (the MCP servers
+   from `.mcp.json` + the datastores this service touches; the cross-stack catalog stays in umbrella
+   `ARCHITECTURE.md` → "MCP servers & sources").
+6. `.gitignore` → keep `.env` ignored; uncomment the build-artifact lines for this stack.
+   `.claude/tasks/` → leave `README.md`; plan files land here at task time.
+7. Add a minimal `permissions.allow` in `.claude/settings.local.json` for this service (replace the
+   `<prefix>-<service>` / `<prefix>-<db>` placeholders) so routine container tests, health curls,
+   read-only DB queries, and read-only git don't prompt every time.
+8. `.claude/agents/flow-explainer.md` → fill the Project Quick Reference and adapt Phases 2/4/5 to
    this stack. **Do not** remove a phase or change the output directory.
-7. `data-flows/README.md` → rewrite the "what does/doesn't go here" for this service.
-8. Update umbrella `CLAUDE.md` (Sub-projects), `ARCHITECTURE.md`, and `CHANGELOG.md`.
+9. `data-flows/README.md` → rewrite the "what does/doesn't go here" for this service.
+10. Update umbrella `CLAUDE.md` (Sub-projects), `ARCHITECTURE.md`, and `CHANGELOG.md`.
 
 Full standard + the new-sub-project checklist: `templates/umbrella/.claude/rules/subprojects.md`.
 
 ---
 
-## Step 5 — Adopt the workflow
+## Step 5 — Equip sub-projects from ECC (recommended)
+
+Once the stack is up (Step 2) and the sub-projects exist (Step 4), run the bundled **`stack-equipper`** agent (copied in Step 3, `.claude/agents/stack-equipper.md`) to pull technology-matched agents, rules, and skills from an external library into each sub-project — instead of hand-picking them.
+
+1. Open a Claude Code session at `<STACK_ROOT>` (umbrella scope — the agent operates across all sub-projects).
+2. Invoke it: `@stack-equipper equip the stack from ECC` (or scope it: "only `<service>`", "agents and rules only").
+3. It detects each service's tech, clones the source library (default `affaan-m/ecc`, MIT) **outside** the tree, and **presents a mapping for approval** — review which assets land where, and prune anything you don't want.
+4. On approval it copies the approved assets (each stamped with its `origin` + license), updates the touched CHANGELOGs, then **deletes the clone**. Nothing is placed before you approve, and the library is never left behind.
+
+Re-runnable: it skips assets already harvested and re-deletes any stray clone. Full contract and the per-stack `Project Quick Reference` to fill in: `templates/umbrella/.claude/agents/stack-equipper.md`. The other bundled umbrella agents are `code-reviewer` and `flow-explainer` (cross-service).
+
+---
+
+## Step 6 — Adopt the workflow
 
 The rules in `templates/umbrella/.claude/rules/` are the operating system:
 
@@ -192,7 +229,8 @@ The rules in `templates/umbrella/.claude/rules/` are the operating system:
 - **`adr/`** — record architecturally significant decisions; `0001`/`0002` are worked examples.
 
 Internalize the mandate: every non-trivial task starts in `/plan` and is not "done" until its
-Verification section has run.
+Verification section has run. This is **not** umbrella-only — each sub-project carries the same
+mandate in its own `<service>/.claude/rules/workflow.md`, mandatory for every task in that service.
 
 ---
 

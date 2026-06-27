@@ -25,6 +25,7 @@ Short definitions of terms used across the stack. One line each. Cross-reference
 ## Workflow vocabulary
 
 - **Plan mode** — Claude Code state in which only the plan file may be edited. Entered via `/plan`, exited via `ExitPlanMode` after user approval.
+- **Plan file** — the persistent artifact of plan mode: `.claude/tasks/<YYYY-MM-DD>-<slug>.md` (per scope — umbrella or sub-project). Holds the approved plan and its mandatory `Verification` section.
 - **Verification** — the section of a plan listing the concrete checks that confirm success. Required for every non-trivial plan.
 - **ADR** — Architecture Decision Record. A short doc capturing the rationale behind one architecturally significant decision. Lives under `.claude/adr/NNNN-slug.md`.
 - **Backlog item** — a 1-3 line strategic task in `BACKLOG.md`. Grows into a `ROADMAP.md` section when ready for detailed work.

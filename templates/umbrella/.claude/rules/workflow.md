@@ -4,7 +4,7 @@ How to run a task at umbrella scope from intent to "done". Cross-references: [`c
 
 ## The mandate
 
-1. **Plan first.** Every non-trivial task enters plan mode (`/plan`). The plan is written to the plan file and approved by the operator before any code or config changes.
+1. **Plan first.** Every non-trivial task enters plan mode (`/plan`). The plan is written to a plan file (`.claude/tasks/<YYYY-MM-DD>-<slug>.md`, see `.claude/tasks/README.md`) and approved by the operator before any code or config changes.
 2. **Plan defines verification.** The plan **must** include a `Verification` section listing the concrete checks that confirm success. If verification is missing, the plan is not finished.
 3. **Verify before done.** A task is complete only when the Verification section has been executed and the results reported. No "should work — declaring done" shortcuts.
 

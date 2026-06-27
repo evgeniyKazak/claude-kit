@@ -23,6 +23,7 @@ Every sub-project has these files. Same layout everywhere so operator muscle mem
 <service>/
 ├── CLAUDE.md                 # entry point — see "CLAUDE.md required sections"
 ├── CHANGELOG.md              # sub-project-scope changes only
+├── .gitignore                # never commit .env / secrets
 ├── .mcp.json                 # MCP servers — must include agentmemory
 ├── data-flows/               # flow-explainer agent output (one .md per documented flow)
 │   └── README.md
@@ -33,9 +34,13 @@ Every sub-project has these files. Same layout everywhere so operator muscle mem
     │       └── run.sh        # thin two-line wrapper
     ├── agents/
     │   └── flow-explainer.md # required cross-project agent
+    ├── tasks/
+    │   └── README.md         # plan files (one per non-trivial task)
     └── rules/
         ├── conventions.md
-        ├── workflow.md
+        ├── workflow.md       # must carry the workflow mandate (see below)
+        ├── testing.md        # service test commands + how to verify a change
+        ├── sources.md        # this service's MCP servers + data sources, and how to use them
         └── lessons-learned.md
 ```
 
@@ -66,6 +71,9 @@ Must have:
 - a `hooks` block with **all 12 hook points** (`SessionStart`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PreCompact`, `SubagentStart`, `SubagentStop`, `Notification`, `TaskCompleted`, `Stop`, `SessionEnd`) — each pointing at `$CLAUDE_PROJECT_DIR/.claude/hooks/agentmemory/run.sh <script>.mjs`
 - the SessionStart hook chain ordered: `session-start.mjs` → `architecture-context.mjs` → `parent-context.mjs`
 - `PreToolUse` matcher `Edit|Write|Read|Glob|Grep`
+
+### Sub-project workflow mandate
+`<service>/.claude/rules/workflow.md` **must** carry the workflow mandate, mandatory for every task in the service: (1) plan-mode-first on non-trivial tasks (`/plan`, with a `Verification` section), (2) verify-before-done, (3) capture non-trivial failures in `lessons-learned.md`. A sub-project may add steps and its own "non-trivial" examples, but cannot drop the mandate. Surface rule (1) as a top `Key Rule` in `<service>/CLAUDE.md` so it lands in always-loaded context.
 
 ### Hook wrapper
 `<service>/.claude/hooks/agentmemory/run.sh` is a **two-line** wrapper that `exec`s `<STACK_ROOT>/.claude/shared-hooks/agentmemory-run.sh "$@"`. Must be `chmod +x`. No logic locally — all logic is in the shared runner.
@@ -104,7 +112,7 @@ Holds the artifacts produced by the service's `flow-explainer`. One Markdown fil
 3. **Add a service entry to `docker-compose.yml`** with `container_name`, healthcheck, named volume(s), and join the stack network.
 4. **Create `<service>/CLAUDE.md`** following the required section order.
 5. **Create `<service>/CHANGELOG.md`** with a header and a "Service scaffolded." entry.
-6. **Copy the `.claude/` skeleton** from `templates/subproject/` (or the closest sibling): settings, the two-line hook wrapper (`chmod +x`), `rules/` (rewrite content — don't ship someone else's `lessons-learned.md`), and `agents/flow-explainer.md` (adapt description, entry-point semantics, persistence stores, boundary line, and Project Quick Reference to the new stack).
+6. **Copy the `.claude/` skeleton** from `templates/subproject/` (or the closest sibling): settings, the two-line hook wrapper (`chmod +x`), `rules/` (rewrite content — don't ship someone else's `lessons-learned.md`; ensure `workflow.md` carries the workflow mandate above), and `agents/flow-explainer.md` (adapt description, entry-point semantics, persistence stores, boundary line, and Project Quick Reference to the new stack). **Adopting an existing service** (it already has a `CLAUDE.md` / `workflow.md`)? **Merge**, don't overwrite — preserve existing content, layer in the standard, and add the mandate if missing.
 7. **Create `<service>/.mcp.json`** — include the `agentmemory` block; add service-specific MCP servers if needed.
 8. **Create `<service>/data-flows/README.md`** — rewrite the "what does/doesn't go here" for the new service. Leave the directory otherwise empty.
 9. **Update umbrella `CLAUDE.md`** — add a bullet under "Sub-projects".
@@ -130,6 +138,7 @@ Refactors, internal renames, language-specific patterns, and sub-project-local l
 
 These are umbrella contracts:
 
+- **Sub-project workflow mandate.** Every `<service>/.claude/rules/workflow.md` carries the plan-mode-first (non-trivial) + verify-before-done mandate, mandatory for every task. A sub-project may add steps but cannot drop the mandate.
 - **`flow-explainer` agent contract.** The 10-phase workflow, hard rules, and "save only to `data-flows/`" output are non-negotiable. Extend the Project Quick Reference, but don't remove a phase or change the output directory.
 - **`data-flows/` deliverable surface.** Agent-produced files only — no hand-written entries, no overlap with `API.md` or rules.
 - **Hook wrapper logic.** All behaviour lives in the shared runner. Local wrapper stays two lines.
