@@ -1,0 +1,61 @@
+name: diagram
+
+# Re-render the README architecture PNG only when the diagram inputs change.
+# Screenshot bytes are not deterministic across runs, so rendering on every
+# push would commit a fresh PNG each time — this paths filter is the guard.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/boilerplate-architecture.json"
+      - "docs/boilerplate-architecture.html"
+      - "scripts/render-diagram-png.mjs"
+      - ".github/workflows/diagram.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "docs/boilerplate-architecture.json"
+      - "docs/boilerplate-architecture.html"
+      - "scripts/render-diagram-png.mjs"
+      - ".github/workflows/diagram.yml"
+  workflow_dispatch:
+
+jobs:
+  diagram:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Fetch archify (direct clone — skills CLI install path varies in CI)
+        run: |
+          git clone --depth 1 https://github.com/tt-a1i/archify /tmp/archify
+          test -f /tmp/archify/archify/bin/archify.mjs
+      - name: Validate architecture spec (showcase)
+        run: |
+          node --version
+          node /tmp/archify/archify/bin/archify.mjs validate architecture docs/boilerplate-architecture.json --quality showcase
+      - name: Render PNG
+        run: |
+          npm install --no-save puppeteer-core@23
+          CHROME_PATH="$(command -v google-chrome)" node scripts/render-diagram-png.mjs
+      - name: Upload PNG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: boilerplate-architecture-png
+          path: docs/boilerplate-architecture.png
+      - name: Commit PNG to main
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/boilerplate-architecture.png
+          if git diff --cached --quiet; then
+            echo "PNG unchanged"
+          else
+            git commit -m "ci: render boilerplate architecture PNG"
+            git push
+          fi
