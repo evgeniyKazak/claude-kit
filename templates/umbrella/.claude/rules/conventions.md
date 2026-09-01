@@ -47,6 +47,8 @@ Cross-references: [`workflow.md`](workflow.md) • [`security.md`](security.md) 
 
 ## Diagrams (archify)
 
+<!-- claude-kit:begin diagrams v1 -->
+
 - **archify** is the standard tool for every visual schema in the stack: project architecture, API contracts, DB relations, cross-service flows. No hand-drawn HTML/SVG. It is installed once at the umbrella (`<STACK_ROOT>/.claude/skills/archify`, via `npx skills add tt-a1i/archify` — see `SETUP.md`); sub-project sessions invoke it as `node <STACK_ROOT>/.claude/skills/archify/bin/archify.mjs`.
 - Diagram HTML lives in a dedicated folder: `<STACK_ROOT>/diagrams/` at umbrella scope, `<service>/diagrams/` at sub-project scope. Nothing but archify-delivered HTML goes in those folders.
 - **Schema-update contract.** Every time a schema is created or updated:
@@ -56,6 +58,7 @@ Cross-references: [`workflow.md`](workflow.md) • [`security.md`](security.md) 
   An updated schema without an updated `.md` and doc link is an unfinished task.
 - Placement exception: flow-explainer narratives stay in `data-flows/` (that agent's deliverable surface) and link their HTML in `diagrams/`.
 - **lavish** (`npx -y lavish-axi <file>.html`, installed via `npx skills add kunchenguid/lavish-axi --skill lavish`) is the review medium for HTML artifacts — plans and diagrams are discussed and approved there, not described in prose. See [`workflow.md`](workflow.md) for the planning loop.
+<!-- claude-kit:end diagrams -->
 
 ## Documentation
 

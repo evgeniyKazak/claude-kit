@@ -4,9 +4,11 @@
 
 Non-negotiable. Every task touched inside this service follows these — no "it's small" shortcuts.
 
+<!-- claude-kit:begin mandate v2 -->
 1. **Plan with lavish on non-trivial tasks.** Any non-trivial change starts with a full analysis of this service based on the existing docs (`CLAUDE.md`, `.claude/rules/`, `data-flows/`, `diagrams/`, umbrella `ARCHITECTURE.md`). Author the plan as an **HTML artifact that explains as much as possible visually** (archify diagrams, block schemes, graphs) at `.claude/tasks/<YYYY-MM-DD>-<slug>.html`, open it with `npx -y lavish-axi <file>.html`, iterate on the operator's annotations (`npx -y lavish-axi poll`), and get approval **in lavish**. The approved plan is then recorded in a plan file (`.claude/tasks/<YYYY-MM-DD>-<slug>.md`, see [`../tasks/README.md`](../tasks/README.md)) that links the lavish artifact and **must** include a `Verification` section. No code or config change before approval. (archify is installed at the umbrella: `node <STACK_ROOT>/.claude/skills/archify/bin/archify.mjs`.)
 2. **Verify before done.** A task is complete only when its Verification section has been executed and the results reported. No "should work — declaring done".
 3. **Capture lessons.** A non-trivial failure gets a `lessons-learned.md` entry the moment it happens.
+<!-- claude-kit:end mandate -->
 
 ### What counts as non-trivial (plan required)
 - Anything touching source other modules import, the service's public API/endpoints, DB schema, or container/build config.

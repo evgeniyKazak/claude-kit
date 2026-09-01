@@ -11,6 +11,14 @@ readable (the boilerplate repo is the source of truth; nothing here is applied b
 > Conventions: `<STACK_ROOT>` = the target stack's root (holds `docker-compose.yml`).
 > `<KIT>` = the path to this boilerplate repo checkout. `<service>` = one microservice directory.
 
+## Prerequisites (hard requirements)
+
+- The target stack is a **git repository with a clean working tree** — `git -C <STACK_ROOT> status --porcelain` prints nothing. Dirty tree → stop and have the operator commit or stash first.
+- The kit checkout is on a **release tag**, never bare `main`: `git -C <KIT> fetch --tags && git -C <KIT> checkout vX.Y.Z`. Read `<KIT>/CHANGELOG.md` — the **Migration** sections between the installed version and the target tag are the update's work list.
+- `jq` is available (kit-doctor and the manifest need it).
+
+Before applying anything (end of Step 2): `git -C <STACK_ROOT> tag pre-kit-update-$(date +%Y%m%d)`. The whole update lands as **one commit** — "Apply claude-kit vX.Y.Z update".
+
 **Non-negotiable shape of an update run:** inventory first, then a **detailed lavish plan** that
 shows — with diagrams, not prose — exactly what will change in the important parts (above all
 `workflow.md` and the agents), operator approval, and only then application. Never "just patch it".
@@ -35,8 +43,16 @@ test -f <STACK_ROOT>/.claude/skills/archify/SKILL.md && echo "archify ok" || ech
 
 ## Step 1 — Inventory the target
 
-Build the feature-gap list by diffing the installed stack against the current `templates/`. Read,
-don't guess — every row of the report cites the file you checked.
+**Manifest first.** Read `<STACK_ROOT>/.claude/kit-manifest.json`:
+
+- Manifest present → the installed version is `manifest.version`; the work list is exactly the
+  `CHANGELOG.md` **Migration** sections from that version up to the target tag. Spot-check two or
+  three claims (mandate marker present, skills dir exists) rather than re-deriving everything.
+- Manifest missing (pre-0.4.0 install) → fall back to the grep inventory below, and **write the
+  manifest as part of this update** (Step 3).
+
+Legacy fallback: build the feature-gap list by diffing the installed stack against the current
+`templates/`. Read, don't guess — every row of the report cites the file you checked.
 
 For the **umbrella** (`<STACK_ROOT>`):
 
@@ -93,10 +109,12 @@ Work through the approved plan in order. The merge discipline is the same as `SE
    test -d .claude/skills/lavish          || npx skills add kunchenguid/lavish-axi --skill lavish
    mkdir -p diagrams
    ```
-2. **Umbrella rules** — merge template changes into `.claude/rules/*.md`: upgrade the
-   `workflow.md` mandate to lavish-plan-first, add the `conventions.md` Diagrams section, update
-   `glossary.md` / `testing.md` / `subprojects.md` references. **Preserve** every locally added
-   rule, lesson, and convention — merge, never overwrite.
+2. **Umbrella rules** — merge template changes into `.claude/rules/*.md`. **Managed blocks make
+   this mechanical**: content between `<!-- claude-kit:begin <id> vN -->` and
+   `<!-- claude-kit:end <id> -->` is kit-owned — replace it wholesale with the template's current
+   block (bumping `vN`); everything outside the markers is operator-owned — never touched. A file
+   that predates the markers gets them added around the matching section during this update.
+   **Preserve** every locally added rule, lesson, and convention — merge, never overwrite.
 3. **Agents** — bring `code-reviewer.md` and both `flow-explainer.md` variants up to the current
    archify-wired versions. If the operator customized an agent (Project Quick Reference, extra
    checklist items), graft those customizations onto the new version rather than dropping either.
@@ -104,32 +122,58 @@ Work through the approved plan in order. The merge discipline is the same as `SE
 4. **Sub-projects** — per service: mandate block in `workflow.md`, `diagrams/` folder,
    `tasks/README.md` convention, agent update. Never overwrite `lessons-learned.md`, local
    `conventions.md` content, or local `permissions.allow`.
-5. **Docs** — update the target's `CLAUDE.md` Key Rules (lavish mandate, diagrams rule),
+5. **Doctor + manifest** — copy the current `scripts/kit-doctor.sh` from `<KIT>/scripts/` to
+   `<STACK_ROOT>/scripts/` (`chmod +x`), then rewrite `.claude/kit-manifest.json`: new `version`
+   (the target tag) and `commit`, `updated_at` = today, refreshed skill versions
+   (`.claude/skills/archify/skill-release.json`, `skills-lock.json` hash), and the current
+   `modules` list. Commit the updated `skills-lock.json` too.
+6. **Docs** — update the target's `CLAUDE.md` Key Rules (lavish mandate, diagrams rule),
    `ARCHITECTURE.md` if new folders/contracts appeared, and append the update to the umbrella
-   `CHANGELOG.md` (one bullet per applied area).
+   `CHANGELOG.md` — one bullet per applied area, naming the kit version and commit.
 
 When a merge is ambiguous, show the operator the merged result before writing — same rule as at
 install time.
 
 ## Step 4 — Verify and log
 
-Run the `Verification` section from the approved plan. Baseline checks for any update run:
+Run the `Verification` section from the approved plan. Baseline for any update run — the doctor
+covers the wiring contracts (manifest, hooks, 12-hook block, SessionStart chain, skills, mandate
+markers, `diagrams/`):
 
 ```bash
-# Skills respond
-test -f <STACK_ROOT>/.claude/skills/archify/SKILL.md && echo "archify ok"
-npx -y lavish-axi --help >/dev/null && echo "lavish ok"
+cd <STACK_ROOT> && bash scripts/kit-doctor.sh
+```
+
+Plus the update-specific checks:
+
+```bash
 # Mandate upgraded everywhere (no stale plan-mode mandate lines)
 grep -rn "plan mode\|/plan" <STACK_ROOT>/.claude/rules/ <STACK_ROOT>/*/.claude/rules/ || echo "clean"
 # Agents carry archify wiring
 grep -l "archify" <STACK_ROOT>/.claude/agents/*.md <STACK_ROOT>/*/.claude/agents/flow-explainer.md
-# Hook chain untouched (compare against pre-update state, not the template)
-test -x <STACK_ROOT>/.claude/shared-hooks/agentmemory-run.sh && echo "runner ok"
+# lavish CLI runs
+npx -y lavish-axi --help >/dev/null && echo "lavish ok"
 # A fresh child session still shows <architecture-context> + <parent-project-context>
 ```
 
+Finish with the single update commit (see Prerequisites).
+
 Then: `CHANGELOG.md` entries in the target (umbrella + every touched sub-project), and a
 `lessons-learned.md` entry if anything non-trivial bit during the update.
+
+---
+
+## Rollback
+
+The update is one commit on top of the `pre-kit-update-<date>` tag, so:
+
+- Preferred: `git -C <STACK_ROOT> revert <update-commit>` — keeps history linear.
+- Blunt (nothing else landed since): `git -C <STACK_ROOT> reset --hard pre-kit-update-<date>`.
+- `.claude/skills/` installs and `node_modules` are **untracked** — a git rollback does not remove
+  them. If the update installed or upgraded a skill you're rolling back, delete its directory and
+  re-run the previous install command (versions are in the pre-update manifest, which git restored).
+- After rollback: `bash scripts/kit-doctor.sh` (expect drift warnings until the state matches the
+  restored manifest) and delete the tag once the dust settles.
 
 ---
 
@@ -140,3 +184,5 @@ Then: `CHANGELOG.md` entries in the target (umbrella + every touched sub-project
   through their own planned tasks.
 - Apply anything not in the lavish-approved plan.
 - Re-run `SETUP.md` — setup is for greenfield; this guide is the only upgrade path.
+- Run from an untagged kit state, skip a Migration section, or leave the manifest stale.
+- Upgrade skills outside of an update run.

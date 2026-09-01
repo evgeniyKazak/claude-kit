@@ -1,0 +1,66 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "docs/*.png"
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: English-only audit (no Cyrillic in kit docs)
+        run: |
+          if grep -rlP '[\x{0400}-\x{04FF}]' --include='*.md' --exclude-dir=.agents .; then
+            echo "Cyrillic found in kit docs"; exit 1
+          fi
+          echo "clean"
+      - name: Linkrot (kit-root docs)
+        run: python3 scripts/check-links.py
+      - name: shellcheck
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q shellcheck
+          find scripts templates -name '*.sh' -print0 | xargs -0 shellcheck
+      - name: JSON validity (templates + docs)
+        run: |
+          find templates docs -name '*.json' -print0 | \
+            xargs -0 -I{} python3 -c "import json,sys; json.load(open('{}')); print('ok {}')"
+
+  diagram:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install archify skill
+        run: npx -y skills add tt-a1i/archify
+      - name: Validate architecture spec (showcase)
+        run: node .agents/skills/archify/bin/archify.mjs validate architecture docs/boilerplate-architecture.json --quality showcase
+      - name: Render PNG
+        run: |
+          npm install --no-save puppeteer-core@23
+          CHROME_PATH="$(command -v google-chrome)" node scripts/render-diagram-png.mjs
+      - name: Upload PNG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: boilerplate-architecture-png
+          path: docs/boilerplate-architecture.png
+      - name: Commit PNG to main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/boilerplate-architecture.png
+          if git diff --cached --quiet; then
+            echo "PNG unchanged"
+          else
+            git commit -m "ci: render boilerplate architecture PNG"
+            git push
+          fi

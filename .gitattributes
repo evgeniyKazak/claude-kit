@@ -1,0 +1,4 @@
+# Cross-platform kit: scripts and configs are consumed inside Linux containers
+# and on macOS — force LF in every checkout regardless of core.autocrlf.
+* text=auto eol=lf
+*.png binary

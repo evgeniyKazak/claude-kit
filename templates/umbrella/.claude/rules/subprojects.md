@@ -74,7 +74,7 @@ Must have:
 - `PreToolUse` matcher `Edit|Write|Read|Glob|Grep`
 
 ### Sub-project workflow mandate
-`<service>/.claude/rules/workflow.md` **must** carry the workflow mandate, mandatory for every task in the service: (1) lavish-plan-first on non-trivial tasks (visual HTML plan reviewed and approved via `npx -y lavish-axi`, then recorded in a plan file with a `Verification` section), (2) verify-before-done, (3) capture non-trivial failures in `lessons-learned.md`. A sub-project may add steps and its own "non-trivial" examples, but cannot drop the mandate. Surface rule (1) as a top `Key Rule` in `<service>/CLAUDE.md` so it lands in always-loaded context.
+`<service>/.claude/rules/workflow.md` **must** carry the workflow mandate, mandatory for every task in the service: (1) lavish-plan-first on non-trivial tasks (visual HTML plan reviewed and approved via `npx -y lavish-axi`, then recorded in a plan file with a `Verification` section), (2) verify-before-done, (3) capture non-trivial failures in `lessons-learned.md`. A sub-project may add steps and its own "non-trivial" examples, but cannot drop the mandate. The block is wrapped in managed markers (`<!-- claude-kit:begin mandate v2 -->` … `<!-- claude-kit:end mandate -->`): inside is kit-owned and replaced wholesale by boilerplate updates, outside is this service's own. Surface rule (1) as a top `Key Rule` in `<service>/CLAUDE.md` so it lands in always-loaded context.
 
 ### Hook wrapper
 `<service>/.claude/hooks/agentmemory/run.sh` is a **two-line** wrapper that `exec`s `<STACK_ROOT>/.claude/shared-hooks/agentmemory-run.sh "$@"`. Must be `chmod +x`. No logic locally — all logic is in the shared runner.

@@ -4,9 +4,11 @@ How to run a task at umbrella scope from intent to "done". Cross-references: [`c
 
 ## The mandate
 
+<!-- claude-kit:begin mandate v2 -->
 1. **Plan with lavish, not plan mode.** Every non-trivial task starts with a full project analysis based on the existing docs (`CLAUDE.md`, `ARCHITECTURE.md`, `.claude/rules/`, `data-flows/`, `diagrams/`). The plan is authored as an **HTML artifact that explains as much as possible visually** — archify diagrams, block schemes, graphs — and reviewed in **lavish** (see "The lavish planning loop" below). The approved plan is then recorded in a plan file (`.claude/tasks/<YYYY-MM-DD>-<slug>.md`, see `.claude/tasks/README.md`) that links the lavish artifact. No code or config changes before approval.
 2. **Plan defines verification.** The plan **must** include a `Verification` section listing the concrete checks that confirm success. If verification is missing, the plan is not finished.
 3. **Verify before done.** A task is complete only when the Verification section has been executed and the results reported. No "should work — declaring done" shortcuts.
+<!-- claude-kit:end mandate -->
 
 These three are non-negotiable. The rest of this file is the supporting checklist.
 

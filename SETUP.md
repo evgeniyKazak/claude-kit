@@ -176,6 +176,36 @@ npx skills add kunchenguid/lavish-axi --skill lavish   # browser review/annotati
 
 Sub-project sessions reach archify through the umbrella path (`node <STACK_ROOT>/.claude/skills/archify/bin/archify.mjs`) — do not install per-service copies. Create the umbrella `diagrams/` folder now: `mkdir -p <STACK_ROOT>/diagrams`.
 
+Commit the generated `skills-lock.json` in the target stack — it pins what was actually installed. Skills are upgraded **only during `UPDATE.md` runs**, never ad hoc.
+
+### Record the install manifest
+
+Write `<STACK_ROOT>/.claude/kit-manifest.json` — the source of truth for future updates (`UPDATE.md` reads it first):
+
+```bash
+cd <STACK_ROOT>
+jq -n \
+  --arg version "$(git -C <KIT> describe --tags --abbrev=0)" \
+  --arg commit  "$(git -C <KIT> rev-parse --short HEAD)" \
+  --arg date    "$(date +%F)" \
+  --arg arc_v   "$(jq -r .version .claude/skills/archify/skill-release.json)" \
+  --arg arc_h   "$(jq -r '.skills.archify.computedHash' skills-lock.json)" \
+  '{kit: "evgeniyKazak/claude-kit", version: $version, commit: $commit,
+    installed_at: $date, updated_at: null,
+    skills: {archify: {version: $arc_v, hash: $arc_h}, lavish: {version: "npx-latest"}},
+    modules: ["infra", "umbrella", "stack-equipper"]}' \
+  > .claude/kit-manifest.json
+```
+
+Append `"subprojects:<name>"` to `modules` for every service you wire in Step 4. (`<KIT>` = the path to your claude-kit checkout — install from a **tag** checkout, see `CHANGELOG.md`.)
+
+### Install the doctor
+
+```bash
+mkdir -p <STACK_ROOT>/scripts
+cp <KIT>/scripts/kit-doctor.sh <STACK_ROOT>/scripts/ && chmod +x <STACK_ROOT>/scripts/kit-doctor.sh
+```
+
 ---
 
 ## Step 4 — Add each sub-project
@@ -190,7 +220,9 @@ For every microservice, copy `templates/subproject/` into `<STACK_ROOT>/<service
 >   Context`, `After Completing a Task`). Never drop what the operator already wrote.
 > - **`.claude/rules/workflow.md`** — preserve the service's existing post-task checklist and
 >   forbiddens, and **ensure the mandate block is present** (lavish-plan-first on non-trivial tasks,
->   verify-before-done). The mandate is required in every sub-project — prepend it if the existing
+>   verify-before-done), wrapped in its managed markers (`<!-- claude-kit:begin mandate v2 -->` …
+>   `<!-- claude-kit:end mandate -->`). Inside the markers is kit-owned and replaced wholesale on
+>   updates; everything outside is operator-owned and never touched. The mandate is required in every sub-project — prepend it if the existing
 >   file lacks it; do not duplicate it if it's already there.
 > - **Other rules** (`conventions.md`, `lessons-learned.md`) — append template sections that are
 >   missing; never overwrite existing entries.
@@ -258,7 +290,14 @@ file with a `Verification` section, and the task is not "done" until that sectio
 
 ## Validate
 
-Run from `<STACK_ROOT>`:
+First run the doctor — it covers the wiring contracts (hooks executable, 12-hook block, SessionStart
+chain, skills, mandate markers, `diagrams/`, manifest):
+
+```bash
+cd <STACK_ROOT> && bash scripts/kit-doctor.sh
+```
+
+Then the runtime checks:
 
 ```bash
 # Infra health
@@ -270,10 +309,7 @@ docker logs <prefix>-agentmemory 2>&1 | grep -i "embedding provider"
 # Namespaces isolated
 curl -s -H "Authorization: Bearer $TOKEN" "http://127.0.0.1:3111/agentmemory/sessions?limit=200" \
   | jq '.sessions | group_by(.project) | map({project: .[0].project, count: length})'
-# Hooks are executable
-test -x <STACK_ROOT>/.claude/shared-hooks/agentmemory-run.sh && echo "runner ok"
-# Skills installed
-test -f <STACK_ROOT>/.claude/skills/archify/SKILL.md && echo "archify ok"
+# lavish CLI runs
 npx -y lavish-axi --help >/dev/null && echo "lavish ok"
 ```
 

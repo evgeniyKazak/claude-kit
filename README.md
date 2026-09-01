@@ -1,5 +1,7 @@
 # Microservices + Claude Code + AgentMemory Boilerplate
 
+[![ci](https://github.com/evgeniyKazak/claude-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/evgeniyKazak/claude-kit/actions/workflows/ci.yml)
+
 A drop-in setup for running a **microservices product the way this stack runs it**: every
 service is its own Claude Code project, all of them share a persistent memory layer
 (AgentMemory) wired through lifecycle hooks, and a strict umbrella ⇄ sub-project architecture
@@ -29,7 +31,8 @@ It is **documentation + templates**, not an installer. The work of standing it u
 
 ![Boilerplate architecture](docs/boilerplate-architecture.png)
 
-Interactive version (search, route tracing, dark/light, PNG/SVG export): open
+The PNG is rendered by CI from the archify spec on every push (no manual export). Interactive
+version (search, route tracing, dark/light, PNG/SVG export): open
 [`docs/boilerplate-architecture.html`](docs/boilerplate-architecture.html) in a browser — or review it
 with `npx -y lavish-axi docs/boilerplate-architecture.html`.
 
@@ -38,7 +41,9 @@ with `npx -y lavish-axi docs/boilerplate-architecture.html`.
 ```
 SETUP.md                       # ← start here: the step-by-step setup guide
 UPDATE.md                      # upgrade an already-installed stack to the current boilerplate
-docs/                          # boilerplate architecture diagram (archify HTML + PNG)
+CHANGELOG.md                   # kit versions + per-release Migration sections
+scripts/                       # kit-doctor.sh (conformance), CI lint/render helpers
+docs/                          # boilerplate architecture diagram (archify HTML + CI-rendered PNG)
 templates/
 ├── infra/                     # ollama + agentmemory docker services, env examples
 ├── umbrella/                  # the stack-root .claude/ + CLAUDE/ARCHITECTURE/CHANGELOG/BACKLOG
@@ -68,3 +73,6 @@ the target stack, plans the upgrade with lavish, and applies only what's missing
   plus one small local patch (local-Ollama LLM compress) documented in
   `templates/umbrella/.claude/adr/0002-local-llm-compress.md`.
 - All documentation is English-only by convention.
+- **Versioning:** semver tags (`vX.Y.Z`) + [`CHANGELOG.md`](CHANGELOG.md) with per-release Migration
+  sections. Install and update from a tag checkout; installs are stamped into the target's
+  `.claude/kit-manifest.json`, and `scripts/kit-doctor.sh` verifies conformance any time.
