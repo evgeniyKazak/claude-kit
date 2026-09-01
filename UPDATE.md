@@ -2,7 +2,7 @@
 
 This guide brings a project that **already runs this boilerplate** up to the current version:
 missing skills and plugins get installed, agents and rules get merged forward, the workflow
-mandate gets upgraded, and new architectural features (diagrams convention, `Update.md`-era
+mandate gets upgraded, and new architectural features (diagrams convention, `UPDATE.md`-era
 contracts) get wired in — without losing anything the operator wrote locally.
 
 It is meant to be run by Claude Code from the target stack, with this repo checked out somewhere

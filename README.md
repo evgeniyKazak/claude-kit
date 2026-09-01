@@ -37,7 +37,7 @@ with `npx -y lavish-axi docs/boilerplate-architecture.html`.
 
 ```
 SETUP.md                       # ← start here: the step-by-step setup guide
-Update.md                      # upgrade an already-installed stack to the current boilerplate
+UPDATE.md                      # upgrade an already-installed stack to the current boilerplate
 docs/                          # boilerplate architecture diagram (archify HTML + PNG)
 templates/
 ├── infra/                     # ollama + agentmemory docker services, env examples
@@ -57,7 +57,7 @@ templates/
 5. Copy `templates/subproject/` once per service; keep the 12-hook block intact.
 6. Run the validation checks at the end of `SETUP.md`.
 
-**Already installed this boilerplate before?** Follow [`Update.md`](Update.md) instead — it inventories
+**Already installed this boilerplate before?** Follow [`UPDATE.md`](UPDATE.md) instead — it inventories
 the target stack, plans the upgrade with lavish, and applies only what's missing.
 
 ## Notes

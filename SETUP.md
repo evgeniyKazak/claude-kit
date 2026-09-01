@@ -278,7 +278,7 @@ npx -y lavish-axi --help >/dev/null && echo "lavish ok"
 ```
 
 When all pass, delete this `SETUP.md` (and the `templates/` tree if you've copied it out). For
-upgrading an already-installed stack later, use [`Update.md`](Update.md) from the boilerplate repo —
+upgrading an already-installed stack later, use [`UPDATE.md`](UPDATE.md) from the boilerplate repo —
 don't re-run this guide.
 
 ---
