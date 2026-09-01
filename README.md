@@ -58,7 +58,7 @@ templates/
    NVIDIA-on-Linux example, and the right LLM runtime differs on CPU-only and Apple Silicon hosts.
 2. Copy `templates/infra/*` into your stack, generate a bearer, bring up `ollama` + `agentmemory`.
 3. Copy `templates/umbrella/.claude/` to your stack root; fill `CLAUDE.md` + `ARCHITECTURE.md`.
-4. Install the umbrella skills: `npx skills add tt-a1i/archify` + `npx skills add kunchenguid/lavish-axi --skill lavish`.
+4. Install the umbrella skills: `npx skills add tt-a1i/archify -y` + `npx skills add kunchenguid/lavish-axi --skill lavish -y`.
 5. Copy `templates/subproject/` once per service; keep the 12-hook block intact.
 6. Run the validation checks at the end of `SETUP.md`.
 

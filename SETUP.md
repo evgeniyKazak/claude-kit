@@ -167,9 +167,11 @@ Two Claude Code skills are part of the workflow and are installed **once, at the
 
 ```bash
 cd <STACK_ROOT>
-npx skills add tt-a1i/archify                          # interactive HTML diagrams
-npx skills add kunchenguid/lavish-axi --skill lavish   # browser review/annotation of HTML artifacts
+npx skills add tt-a1i/archify -y                       # interactive HTML diagrams
+npx skills add kunchenguid/lavish-axi --skill lavish -y   # browser review/annotation of HTML artifacts
 ```
+
+The trailing `-y` is the skills CLI's own `--yes` flag — without it the CLI stops on an interactive "Which agents do you want to install to?" prompt and hangs in non-interactive runs (CI, scripts). Note that `npx -y` only answers npx's install prompt, not the CLI's.
 
 - **archify** (`.claude/skills/archify`) — compiles typed JSON specs into self-contained interactive HTML diagrams (architecture / workflow / sequence / dataflow / lifecycle). It is the standard tool for every visual schema: project architecture, API contracts, DB relations, cross-service flows. Output goes to `diagrams/` folders; every schema gets a companion `.md` linked from the main docs — the full contract is the **Diagrams** section of `templates/umbrella/.claude/rules/conventions.md`.
 - **lavish** (`.claude/skills/lavish`) — opens agent-authored HTML artifacts in a local browser for annotation and approval (`npx -y lavish-axi <file>.html`). It replaces Claude Code plan mode in this workflow: plans are authored as visual HTML artifacts and approved in lavish — see Step 6.

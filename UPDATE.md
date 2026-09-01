@@ -31,7 +31,7 @@ The plan in Step 2 is reviewed in lavish. If the target doesn't have it yet, ins
 
 ```bash
 test -d <STACK_ROOT>/.claude/skills/lavish || \
-  (cd <STACK_ROOT> && npx skills add kunchenguid/lavish-axi --skill lavish)
+  (cd <STACK_ROOT> && npx skills add kunchenguid/lavish-axi --skill lavish -y)
 npx -y lavish-axi --help >/dev/null && echo "lavish ok"
 ```
 
@@ -105,8 +105,8 @@ Work through the approved plan in order. The merge discipline is the same as `SE
 1. **Skills** — install what's missing at the umbrella:
    ```bash
    cd <STACK_ROOT>
-   test -f .claude/skills/archify/SKILL.md || npx skills add tt-a1i/archify
-   test -d .claude/skills/lavish          || npx skills add kunchenguid/lavish-axi --skill lavish
+   test -f .claude/skills/archify/SKILL.md || npx skills add tt-a1i/archify -y
+   test -d .claude/skills/lavish          || npx skills add kunchenguid/lavish-axi --skill lavish -y
    mkdir -p diagrams
    ```
 2. **Umbrella rules** — merge template changes into `.claude/rules/*.md`. **Managed blocks make
