@@ -86,7 +86,7 @@ done < <(find . -path ./.agents -prune -o -path '*/.claude/rules/workflow.md' -p
 # --- diagrams/ at umbrella and per sub-project (a sub-project = dir with CLAUDE.md + .claude/) ---
 if [ -d diagrams ]; then ok "umbrella diagrams/ exists"; else fail "umbrella diagrams/ missing"; fi
 for d in */; do
-  [ -f "${d}CLAUDE.md" ] && [ -d "${d}.claude" ] || continue
+  if [ ! -f "${d}CLAUDE.md" ] || [ ! -d "${d}.claude" ]; then continue; fi
   if [ -d "${d}diagrams" ]; then ok "diagrams/ exists: ${d%/}"; else fail "diagrams/ missing: ${d%/}"; fi
 done
 

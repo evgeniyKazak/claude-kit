@@ -40,9 +40,16 @@ jobs:
         with:
           node-version: 22
       - name: Install archify skill
-        run: npx -y skills add tt-a1i/archify
+        run: |
+          npx -y skills add tt-a1i/archify
+          echo "--- install result ---"
+          ls -la .agents/skills/archify/bin || true
+          test -f .agents/skills/archify/bin/archify.mjs
       - name: Validate architecture spec (showcase)
-        run: node .agents/skills/archify/bin/archify.mjs validate architecture docs/boilerplate-architecture.json --quality showcase
+        run: |
+          node --version
+          node .agents/skills/archify/bin/archify.mjs validate architecture docs/boilerplate-architecture.json --quality showcase --json | tee /tmp/validate.json
+          python3 -c "import json; d=json.load(open('/tmp/validate.json')); print('ok:', d.get('ok')); [print(x['severity'], x['message'][:300]) for x in d.get('diagnostics', [])]; raise SystemExit(0 if d.get('ok') else 1)"
       - name: Render PNG
         run: |
           npm install --no-save puppeteer-core@23
