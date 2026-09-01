@@ -33,4 +33,4 @@ A task is **not** done until its plan's `Verification` section has run. For this
 Stack-wide primitives (compose health, agentmemory smoke, ollama probes) are in the umbrella [`testing.md`](../../../.claude/rules/testing.md). "It builds" is **not** verification.
 
 ## When verification fails
-Capture the exact command + output into the task report. Then either fix and rerun, or re-enter plan mode and amend the plan — do not declare done. A non-trivial failure also earns a [`lessons-learned.md`](lessons-learned.md) entry.
+Capture the exact command + output into the task report. Then either fix and rerun, or reopen the lavish plan and amend it — do not declare done. A non-trivial failure also earns a [`lessons-learned.md`](lessons-learned.md) entry.

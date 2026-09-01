@@ -1,0 +1,381 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Claude-Kit Boilerplate Architecture",
+    "output": "boilerplate-architecture.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "memory-loop",
+        "label": "Memory capture loop",
+        "focus": [
+          "umbrella-session",
+          "subproject-session",
+          "hooks",
+          "agentmemory",
+          "ollama"
+        ],
+        "note": "Sessions emit 12 lifecycle events via the shared runner; AgentMemory compresses/embeds locally and injects context back at SessionStart."
+      },
+      {
+        "id": "planning-loop",
+        "label": "Lavish planning loop",
+        "focus": [
+          "operator",
+          "umbrella-session",
+          "lavish",
+          "docs"
+        ],
+        "note": "Non-trivial tasks are planned as visual HTML artifacts, annotated and approved by the operator in the browser via lavish."
+      },
+      {
+        "id": "diagram-pipeline",
+        "label": "Archify diagram pipeline",
+        "focus": [
+          "umbrella-session",
+          "agents",
+          "archify",
+          "diagrams",
+          "docs"
+        ],
+        "note": "Agents author typed JSON specs; archify delivers interactive HTML into diagrams/, with a companion .md linked from the main docs."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "operator",
+      "type": "external",
+      "label": "Operator",
+      "sublabel": "terminal + browser",
+      "pos": [
+        40,
+        230
+      ],
+      "size": [
+        130,
+        64
+      ]
+    },
+    {
+      "id": "umbrella-session",
+      "type": "frontend",
+      "label": "Umbrella Session",
+      "sublabel": "Claude Code @ STACK_ROOT",
+      "pos": [
+        300,
+        230
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "subproject-session",
+      "type": "frontend",
+      "label": "Sub-project Session",
+      "sublabel": "Claude Code @ service/",
+      "pos": [
+        300,
+        470
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "lavish",
+      "type": "backend",
+      "label": "lavish skill",
+      "sublabel": "plan review in browser",
+      "pos": [
+        300,
+        40
+      ],
+      "size": [
+        160,
+        60
+      ],
+      "tag": "replaces plan mode"
+    },
+    {
+      "id": "agents",
+      "type": "backend",
+      "label": "Bundled Agents",
+      "sublabel": "4 reusable sub-agents",
+      "pos": [
+        620,
+        40
+      ],
+      "size": [
+        200,
+        68
+      ]
+    },
+    {
+      "id": "archify",
+      "type": "backend",
+      "label": "archify skill",
+      "sublabel": "JSON spec -> HTML",
+      "pos": [
+        940,
+        40
+      ],
+      "size": [
+        170,
+        60
+      ]
+    },
+    {
+      "id": "docs",
+      "type": "database",
+      "label": "Docs & Rules",
+      "sublabel": "CLAUDE / ARCHITECTURE / rules",
+      "pos": [
+        620,
+        230
+      ],
+      "size": [
+        180,
+        68
+      ]
+    },
+    {
+      "id": "diagrams",
+      "type": "database",
+      "label": "diagrams/ + data-flows/",
+      "sublabel": "HTML + companion .md",
+      "pos": [
+        940,
+        230
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "hooks",
+      "type": "security",
+      "label": "Shared Hook Runner",
+      "sublabel": "12-hook contract",
+      "pos": [
+        620,
+        470
+      ],
+      "size": [
+        180,
+        64
+      ],
+      "tag": "2-line wrappers"
+    },
+    {
+      "id": "agentmemory",
+      "type": "backend",
+      "label": "AgentMemory",
+      "sublabel": "REST 127.0.0.1:3111",
+      "pos": [
+        620,
+        640
+      ],
+      "size": [
+        180,
+        64
+      ]
+    },
+    {
+      "id": "ollama",
+      "type": "database",
+      "label": "Ollama",
+      "sublabel": "LLM + embeddings :11434",
+      "pos": [
+        940,
+        640
+      ],
+      "size": [
+        170,
+        64
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Stack repo (STACK_ROOT)",
+      "wraps": [
+        "umbrella-session",
+        "subproject-session",
+        "lavish",
+        "agents",
+        "archify",
+        "docs",
+        "diagrams",
+        "hooks"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "Docker: 127.0.0.1-bound memory infra",
+      "wraps": [
+        "agentmemory",
+        "ollama"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "operator-umbrella",
+      "from": "operator",
+      "to": "umbrella-session",
+      "label": "prompts / approvals",
+      "variant": "emphasis",
+      "labelDy": -14
+    },
+    {
+      "id": "operator-subproject",
+      "from": "operator",
+      "to": "subproject-session",
+      "label": "prompts",
+      "fromSide": "bottom",
+      "toSide": "left",
+      "via": [
+        [
+          105,
+          502
+        ]
+      ],
+      "labelSegment": 1,
+      "labelDy": -14
+    },
+    {
+      "id": "umbrella-lavish",
+      "from": "umbrella-session",
+      "to": "lavish",
+      "label": "plan / annotate / approve",
+      "variant": "emphasis",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "umbrella-agents",
+      "from": "umbrella-session",
+      "to": "agents",
+      "label": "invoke",
+      "fromSide": "right",
+      "toSide": "left",
+      "via": [
+        [
+          575,
+          262
+        ],
+        [
+          575,
+          74
+        ]
+      ],
+      "labelSegment": 1
+    },
+    {
+      "id": "agents-archify",
+      "from": "agents",
+      "to": "archify",
+      "label": "spec -> deliver",
+      "labelDy": -14
+    },
+    {
+      "id": "archify-diagrams",
+      "from": "archify",
+      "to": "diagrams",
+      "label": "HTML",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        1025,
+        175
+      ]
+    },
+    {
+      "id": "diagrams-docs",
+      "from": "diagrams",
+      "to": "docs",
+      "label": "companion .md",
+      "variant": "dashed",
+      "labelDy": -14
+    },
+    {
+      "id": "docs-umbrella",
+      "from": "docs",
+      "to": "umbrella-session",
+      "label": "rules + context",
+      "labelDy": -14,
+      "labelDx": -30
+    },
+    {
+      "id": "umbrella-hooks",
+      "from": "umbrella-session",
+      "to": "hooks",
+      "label": "12 lifecycle events",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "via": [
+        [
+          380,
+          390
+        ],
+        [
+          710,
+          390
+        ]
+      ],
+      "labelSegment": 1,
+      "labelDy": -14
+    },
+    {
+      "id": "subproject-hooks",
+      "from": "subproject-session",
+      "to": "hooks",
+      "label": "12 lifecycle events",
+      "labelDy": -14
+    },
+    {
+      "id": "hooks-agentmemory",
+      "from": "hooks",
+      "to": "agentmemory",
+      "label": "observe / context (bearer)",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        710,
+        595
+      ]
+    },
+    {
+      "id": "agentmemory-ollama",
+      "from": "agentmemory",
+      "to": "ollama",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "agentmemory-subproject",
+      "from": "agentmemory",
+      "to": "subproject-session",
+      "label": "SessionStart context inject",
+      "variant": "dashed",
+      "fromSide": "left",
+      "toSide": "bottom",
+      "via": [
+        [
+          380,
+          672
+        ]
+      ],
+      "labelSegment": 0,
+      "labelDy": -14
+    }
+  ]
+}

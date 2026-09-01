@@ -78,5 +78,5 @@ Good: `curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:3111/agentmemo
 ## When verification fails
 
 1. Capture the exact failure (command + output). It goes into the task report and possibly `lessons-learned.md`.
-2. Decide: amend the plan and continue, or stop and re-enter plan mode.
+2. Decide: amend the plan and continue, or stop and re-plan through lavish.
 3. Do not declare the task done until verification passes (or the plan is amended to drop the failing check with a documented reason).

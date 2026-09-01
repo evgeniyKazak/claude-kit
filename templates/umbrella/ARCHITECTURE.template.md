@@ -52,7 +52,7 @@ Authoritative catalog of the MCP servers and data sources available across the s
 | `agentmemory` | every project (`.mcp.json`) | `core` 6-tool recall surface | "how did we do X before", finding past work |
 | `<service-mcp>` | `<service>` | `<tools>` | `<good-fit queries>` |
 
-Data sources are the stores in **Shared data** above — reached by container name (`http://<peer>:<port>`), never `localhost`. Read-only ad-hoc queries are fine; writes/DDL go through plan mode.
+Data sources are the stores in **Shared data** above — reached by container name (`http://<peer>:<port>`), never `localhost`. Read-only ad-hoc queries are fine; writes/DDL require an approved lavish plan.
 
 ## Secrets
 

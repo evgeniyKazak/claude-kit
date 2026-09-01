@@ -15,16 +15,17 @@ env files, shared docs, stack-wide decisions.>
 
 ## Key Rules
 1. **English-only documentation.** All `.md` files in this repo are English.
-2. **Start every non-trivial task in plan mode.** Use `/plan`; the plan must include a `Verification` section; `ExitPlanMode` only after the operator approves.
+2. **Plan every non-trivial task with lavish, not plan mode.** Full analysis on the existing docs → the plan as a visual HTML artifact (archify diagrams, block schemes, graphs) → reviewed and approved in lavish (`npx -y lavish-axi <plan>.html`) → recorded in a plan file with a `Verification` section. See `.claude/rules/workflow.md`.
 3. **Verification before "done".** A task is not complete until the plan's Verification section has been executed and reported.
 4. **Umbrella vs sub-project scope.** Service-specific code/conventions live in that service's directory. The umbrella owns `docker-compose.yml`, `.env`, `agentmemory.env`, `ARCHITECTURE.md`, shared hooks, the model list, cross-service infra.
 5. **Inter-service URLs use container names** (`<service>:<port>`) inside the docker network. `127.0.0.1` is reserved for host-bound services (agentmemory REST on `3111`).
 6. **Secrets never inline.** All credentials read from `.env`, `agentmemory.env`, or a service's own credential store. See `.claude/rules/security.md`.
+7. **Schemas are archify diagrams.** Architecture, API contracts, DB relations, and cross-service flows are visualized with the archify skill: HTML in `diagrams/`, a companion `.md` per schema, linked from the main docs. See the Diagrams convention in `.claude/rules/conventions.md`.
 
 ## Project Rules
 Detailed rules in `.claude/rules/`:
 - `conventions.md` — umbrella coding/config conventions
-- `workflow.md` — operator workflow, plan-mode mandate, post-task checklist
+- `workflow.md` — operator workflow, lavish-plan mandate, post-task checklist
 - `subprojects.md` — required structure of every sub-project; checklist for adding one
 - `testing.md` — verification primitives and strategy
 - `security.md` — secrets, host bindings, redaction
@@ -63,11 +64,12 @@ Update only what changed:
 - [ ] **`CHANGELOG.md`** — every umbrella-level change
 - [ ] **`BACKLOG.md`** — a strategic task appeared or closed
 - [ ] **`.claude/rules/*`** — a new convention / lesson / verification primitive / security rule
+- [ ] **`diagrams/`** — a schema changed → archify HTML + companion `.md` updated + doc link present
 - [ ] **`.claude/adr/`** — an architecturally significant decision
 - [ ] **Sub-project docs** — when the task crossed into a sub-project, follow its own checklist
 
 ## Forbidden
-- Do not start a non-trivial task without `/plan`.
+- Do not start a non-trivial task without a lavish-approved plan.
 - Do not declare a task done without running its Verification section.
 - Do not write umbrella docs in any language but English.
 - Do not commit secrets.

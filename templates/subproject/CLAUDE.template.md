@@ -13,7 +13,7 @@ This service lives inside the umbrella `<stack>` stack. Treat it as **its own Cl
 **Focus:** <one line.>
 
 ## Key Rules
-1. **Every non-trivial task starts in plan mode (`/plan`) and is not "done" until its `Verification` section has run** — the mandatory sub-project workflow. See `.claude/rules/workflow.md`.
+1. **Every non-trivial task starts with a lavish plan (visual HTML artifact, approved via `npx -y lavish-axi`) and is not "done" until its `Verification` section has run** — the mandatory sub-project workflow. See `.claude/rules/workflow.md`.
 2. <Rule that overrides or specializes an umbrella default for this stack.>
 3. All env vars come from docker-compose — never hardcode connection strings or secrets.
 4. <Language/framework rule, e.g. async-first, typed models, module layout.>
@@ -23,7 +23,7 @@ This service lives inside the umbrella `<stack>` stack. Treat it as **its own Cl
 ## Project Rules
 Detailed rules in `.claude/rules/`:
 - `conventions.md` — code conventions, naming, file organization
-- `workflow.md` — **mandatory workflow** (plan-mode-first on non-trivial tasks, verify-before-done), post-task checklist, upstream-reporting triggers
+- `workflow.md` — **mandatory workflow** (lavish-plan-first on non-trivial tasks, verify-before-done), post-task checklist, upstream-reporting triggers
 - `testing.md` — where tests live, how to run them, the bar for "needs a test", how to verify a change
 - `sources.md` — MCP servers and data sources this service has, and how to use each
 - `lessons-learned.md` — error log; check before touching a previously problematic component
@@ -39,6 +39,7 @@ curl -s http://localhost:<port>/<health-path>
 ```
 <top-level source tree with one-line role comments per directory>
 data-flows/                 # flow-explainer agent output (one .md per documented flow)
+diagrams/                   # archify HTML schemas (+ companion .md per schema)
 .claude/agents/             # sub-agents — flow-explainer.md is required
 .claude/rules/              # conventions, workflow, testing, sources, lessons-learned
 .claude/tasks/              # plan files (one per non-trivial task; see workflow mandate)
@@ -50,4 +51,5 @@ data-flows/                 # flow-explainer agent output (one .md per documente
 - [ ] `CHANGELOG.md` — add an entry about what was done
 - [ ] `.claude/rules/conventions.md` — new convention discovered
 - [ ] `.claude/rules/lessons-learned.md` — an error occurred → log it
+- [ ] `diagrams/` — a schema changed → archify HTML + companion `.md` updated + link from `CLAUDE.md`/`API.md`
 - [ ] **Umbrella reporting** — endpoint/port/protocol, new shared data, new sibling dependency, new model, or an architecturally significant decision → update the umbrella docs in the **same task** (see `.claude/rules/workflow.md`).

@@ -4,7 +4,7 @@
 
 Non-negotiable. Every task touched inside this service follows these — no "it's small" shortcuts.
 
-1. **Plan first on non-trivial tasks.** Any non-trivial change enters plan mode (`/plan`); the plan is written to a plan file (`.claude/tasks/<YYYY-MM-DD>-<slug>.md`, see [`../tasks/README.md`](../tasks/README.md)) and approved by the operator before any code or config change, and **must** include a `Verification` section.
+1. **Plan with lavish on non-trivial tasks.** Any non-trivial change starts with a full analysis of this service based on the existing docs (`CLAUDE.md`, `.claude/rules/`, `data-flows/`, `diagrams/`, umbrella `ARCHITECTURE.md`). Author the plan as an **HTML artifact that explains as much as possible visually** (archify diagrams, block schemes, graphs) at `.claude/tasks/<YYYY-MM-DD>-<slug>.html`, open it with `npx -y lavish-axi <file>.html`, iterate on the operator's annotations (`npx -y lavish-axi poll`), and get approval **in lavish**. The approved plan is then recorded in a plan file (`.claude/tasks/<YYYY-MM-DD>-<slug>.md`, see [`../tasks/README.md`](../tasks/README.md)) that links the lavish artifact and **must** include a `Verification` section. No code or config change before approval. (archify is installed at the umbrella: `node <STACK_ROOT>/.claude/skills/archify/bin/archify.mjs`.)
 2. **Verify before done.** A task is complete only when its Verification section has been executed and the results reported. No "should work — declaring done".
 3. **Capture lessons.** A non-trivial failure gets a `lessons-learned.md` entry the moment it happens.
 
@@ -16,7 +16,7 @@ Non-negotiable. Every task touched inside this service follows these — no "it'
 ### Trivial (no plan needed)
 - Typo / comment fix, a single-line config rename, adding one already-permitted permission, a read-only diagnostic.
 
-When in doubt, default to plan mode — the cost is small.
+When in doubt, default to a lavish plan — the cost is small.
 
 ## Verification
 
@@ -26,7 +26,7 @@ Run the `Verification` section from the plan before declaring the task done — 
 - a health/smoke probe of the changed surface — `curl -s http://localhost:<port>/<health-path>` → expected status/body;
 - container came up clean after the change — `docker logs --since 30s <prefix>-<service>` → no errors.
 
-Service-level detail (where tests live, the exact command, the bar for "needs a test") is in [`testing.md`](testing.md); the stack-wide primitives toolbox is in umbrella `.claude/rules/testing.md`. Verification output goes into the task report. If a check fails, the task is **not** done — fix and rerun, or re-enter plan mode and amend the plan. "Build passed" is not verification.
+Service-level detail (where tests live, the exact command, the bar for "needs a test") is in [`testing.md`](testing.md); the stack-wide primitives toolbox is in umbrella `.claude/rules/testing.md`. Verification output goes into the task report. If a check fails, the task is **not** done — fix and rerun, or reopen the lavish artifact and amend the plan. "Build passed" is not verification.
 
 ## After EVERY Completed Task
 
@@ -34,6 +34,7 @@ Service-level detail (where tests live, the exact command, the bar for "needs a 
 2. **CHANGELOG.md** — add an entry at the top (`## YYYY-MM-DD` → 1-2 lines per item).
 3. **.claude/rules/** — new code convention → `conventions.md`; new domain knowledge → the matching rules file.
 4. **lessons-learned.md** — if an error was made, log it immediately (format is in the file).
+5. **diagrams/** — a schema (architecture, API contract, DB relations, flow) was created or changed → refresh the archify HTML in `diagrams/`, update its companion `.md`, and link it from `CLAUDE.md` / `API.md`. See the Diagrams convention in umbrella `.claude/rules/conventions.md`.
 
 ## Umbrella reporting (architectural changes)
 

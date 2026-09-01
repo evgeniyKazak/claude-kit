@@ -45,6 +45,18 @@ Cross-references: [`workflow.md`](workflow.md) • [`security.md`](security.md) 
 - Tag every model with its exact variant (`qwen2.5:3b-instruct`, not `qwen2.5:3b`). The missing suffix resolves to "latest" and may differ from what you tested against.
 - When a GPU is shared between consumers, rely on the runtime's keep-alive to swap models in/out. Don't raise keep-alive system-wide if it starves another consumer.
 
+## Diagrams (archify)
+
+- **archify** is the standard tool for every visual schema in the stack: project architecture, API contracts, DB relations, cross-service flows. No hand-drawn HTML/SVG. It is installed once at the umbrella (`<STACK_ROOT>/.claude/skills/archify`, via `npx skills add tt-a1i/archify` — see `SETUP.md`); sub-project sessions invoke it as `node <STACK_ROOT>/.claude/skills/archify/bin/archify.mjs`.
+- Diagram HTML lives in a dedicated folder: `<STACK_ROOT>/diagrams/` at umbrella scope, `<service>/diagrams/` at sub-project scope. Nothing but archify-delivered HTML goes in those folders.
+- **Schema-update contract.** Every time a schema is created or updated:
+  1. deliver/refresh the archify HTML into `diagrams/`;
+  2. create/update its **companion `.md`** (same basename, next to the docs it serves) — what the schema shows, the key relationships/contracts, and a link to the HTML. The `.md` is the knowledge surface Claude reads; the HTML is the visual artifact;
+  3. link the companion `.md` from the main documentation — `ARCHITECTURE.md` at umbrella scope, `CLAUDE.md` / `API.md` at sub-project scope.
+  An updated schema without an updated `.md` and doc link is an unfinished task.
+- Placement exception: flow-explainer narratives stay in `data-flows/` (that agent's deliverable surface) and link their HTML in `diagrams/`.
+- **lavish** (`npx -y lavish-axi <file>.html`, installed via `npx skills add kunchenguid/lavish-axi --skill lavish`) is the review medium for HTML artifacts — plans and diagrams are discussed and approved there, not described in prose. See [`workflow.md`](workflow.md) for the planning loop.
+
 ## Documentation
 
 - English. All `.md` files in this repository are English.

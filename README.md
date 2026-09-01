@@ -17,13 +17,28 @@ It is **documentation + templates**, not an installer. The work of standing it u
 - **Strict umbrella/sub-project architecture** — a curated `.claude/rules/` set, an ADR system,
   and a sub-project standard that every service follows identically.
 - **Reusable agents** — a cross-service `flow-explainer`, a single-service `flow-explainer`, and
-  a stack-agnostic `code-reviewer`.
-- **A workflow mandate** — plan-mode-first, verification-before-done, baked into the rules.
+  a stack-agnostic `code-reviewer` — all wired to visualize architecture, API contracts, and DB
+  relations with **archify** (interactive HTML diagrams in `diagrams/`, a companion `.md` per schema).
+- **A workflow mandate** — lavish-plan-first (plans are visual HTML artifacts reviewed and approved
+  in the browser via **lavish**), verification-before-done, baked into the rules.
+- **Two umbrella skills** — [`tt-a1i/archify`](https://github.com/tt-a1i/archify) and
+  [`kunchenguid/lavish-axi`](https://github.com/kunchenguid/lavish-axi), installed at setup time via
+  `npx skills add` (never vendored).
+
+## Architecture
+
+![Boilerplate architecture](docs/boilerplate-architecture.png)
+
+Interactive version (search, route tracing, dark/light, PNG/SVG export): open
+[`docs/boilerplate-architecture.html`](docs/boilerplate-architecture.html) in a browser — or review it
+with `npx -y lavish-axi docs/boilerplate-architecture.html`.
 
 ## Layout
 
 ```
 SETUP.md                       # ← start here: the step-by-step setup guide
+Update.md                      # upgrade an already-installed stack to the current boilerplate
+docs/                          # boilerplate architecture diagram (archify HTML + PNG)
 templates/
 ├── infra/                     # ollama + agentmemory docker services, env examples
 ├── umbrella/                  # the stack-root .claude/ + CLAUDE/ARCHITECTURE/CHANGELOG/BACKLOG
@@ -38,8 +53,12 @@ templates/
    NVIDIA-on-Linux example, and the right LLM runtime differs on CPU-only and Apple Silicon hosts.
 2. Copy `templates/infra/*` into your stack, generate a bearer, bring up `ollama` + `agentmemory`.
 3. Copy `templates/umbrella/.claude/` to your stack root; fill `CLAUDE.md` + `ARCHITECTURE.md`.
-4. Copy `templates/subproject/` once per service; keep the 12-hook block intact.
-5. Run the validation checks at the end of `SETUP.md`.
+4. Install the umbrella skills: `npx skills add tt-a1i/archify` + `npx skills add kunchenguid/lavish-axi --skill lavish`.
+5. Copy `templates/subproject/` once per service; keep the 12-hook block intact.
+6. Run the validation checks at the end of `SETUP.md`.
+
+**Already installed this boilerplate before?** Follow [`Update.md`](Update.md) instead — it inventories
+the target stack, plans the upgrade with lavish, and applies only what's missing.
 
 ## Notes
 

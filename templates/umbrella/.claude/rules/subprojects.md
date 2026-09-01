@@ -27,6 +27,7 @@ Every sub-project has these files. Same layout everywhere so operator muscle mem
 ├── .mcp.json                 # MCP servers — must include agentmemory
 ├── data-flows/               # flow-explainer agent output (one .md per documented flow)
 │   └── README.md
+├── diagrams/                 # archify HTML schemas + companion .md per schema
 └── .claude/
     ├── settings.local.json   # local overrides — must include the full 12-hook block
     ├── hooks/
@@ -73,7 +74,7 @@ Must have:
 - `PreToolUse` matcher `Edit|Write|Read|Glob|Grep`
 
 ### Sub-project workflow mandate
-`<service>/.claude/rules/workflow.md` **must** carry the workflow mandate, mandatory for every task in the service: (1) plan-mode-first on non-trivial tasks (`/plan`, with a `Verification` section), (2) verify-before-done, (3) capture non-trivial failures in `lessons-learned.md`. A sub-project may add steps and its own "non-trivial" examples, but cannot drop the mandate. Surface rule (1) as a top `Key Rule` in `<service>/CLAUDE.md` so it lands in always-loaded context.
+`<service>/.claude/rules/workflow.md` **must** carry the workflow mandate, mandatory for every task in the service: (1) lavish-plan-first on non-trivial tasks (visual HTML plan reviewed and approved via `npx -y lavish-axi`, then recorded in a plan file with a `Verification` section), (2) verify-before-done, (3) capture non-trivial failures in `lessons-learned.md`. A sub-project may add steps and its own "non-trivial" examples, but cannot drop the mandate. Surface rule (1) as a top `Key Rule` in `<service>/CLAUDE.md` so it lands in always-loaded context.
 
 ### Hook wrapper
 `<service>/.claude/hooks/agentmemory/run.sh` is a **two-line** wrapper that `exec`s `<STACK_ROOT>/.claude/shared-hooks/agentmemory-run.sh "$@"`. Must be `chmod +x`. No logic locally — all logic is in the shared runner.
@@ -82,7 +83,7 @@ Must have:
 `<service>/.claude/agents/flow-explainer.md` is mandatory, adapted to the service's stack. Shared contract:
 - YAML frontmatter `name: flow-explainer`, one-sentence description, `tools: Read, Grep, Glob, Bash, Write, TodoWrite`.
 - 10-phase workflow: Orient → Discover entry points → Trace execution → Map persistence → Map outbound calls → Build diagram → Self-check → Present for review → Iterate → Save.
-- Hard rules: English-only output; never write application code; trace by reading source; one Markdown artifact per approved flow saved to `<service>/data-flows/`; explicit user approval before saving.
+- Hard rules: English-only output; never write application code; trace by reading source; one Markdown artifact per approved flow saved to `<service>/data-flows/` plus its archify HTML diagram in `<service>/diagrams/`; explicit user approval before saving.
 - A `Project Quick Reference` describing the service's modules, entry points, and conventions.
 - Boundary discipline: the sub-project agent stops at calls leaving the container. Cross-service flows belong to the umbrella `flow-explainer` and umbrella `data-flows/`.
 
@@ -114,7 +115,7 @@ Holds the artifacts produced by the service's `flow-explainer`. One Markdown fil
 5. **Create `<service>/CHANGELOG.md`** with a header and a "Service scaffolded." entry.
 6. **Copy the `.claude/` skeleton** from `templates/subproject/` (or the closest sibling): settings, the two-line hook wrapper (`chmod +x`), `rules/` (rewrite content — don't ship someone else's `lessons-learned.md`; ensure `workflow.md` carries the workflow mandate above), and `agents/flow-explainer.md` (adapt description, entry-point semantics, persistence stores, boundary line, and Project Quick Reference to the new stack). **Adopting an existing service** (it already has a `CLAUDE.md` / `workflow.md`)? **Merge**, don't overwrite — preserve existing content, layer in the standard, and add the mandate if missing.
 7. **Create `<service>/.mcp.json`** — include the `agentmemory` block; add service-specific MCP servers if needed.
-8. **Create `<service>/data-flows/README.md`** — rewrite the "what does/doesn't go here" for the new service. Leave the directory otherwise empty.
+8. **Create `<service>/data-flows/README.md`** — rewrite the "what does/doesn't go here" for the new service. Leave the directory otherwise empty. Create an empty `<service>/diagrams/` for archify output.
 9. **Update umbrella `CLAUDE.md`** — add a bullet under "Sub-projects".
 10. **Update `ARCHITECTURE.md`** — add the service to the table, inter-service URLs, and a details entry.
 11. **Update umbrella `CHANGELOG.md`** — log the scaffolding.
@@ -138,8 +139,9 @@ Refactors, internal renames, language-specific patterns, and sub-project-local l
 
 These are umbrella contracts:
 
-- **Sub-project workflow mandate.** Every `<service>/.claude/rules/workflow.md` carries the plan-mode-first (non-trivial) + verify-before-done mandate, mandatory for every task. A sub-project may add steps but cannot drop the mandate.
-- **`flow-explainer` agent contract.** The 10-phase workflow, hard rules, and "save only to `data-flows/`" output are non-negotiable. Extend the Project Quick Reference, but don't remove a phase or change the output directory.
+- **Sub-project workflow mandate.** Every `<service>/.claude/rules/workflow.md` carries the lavish-plan-first (non-trivial) + verify-before-done mandate, mandatory for every task. A sub-project may add steps but cannot drop the mandate.
+- **`flow-explainer` agent contract.** The 10-phase workflow, hard rules, and the "md to `data-flows/`, archify HTML to `diagrams/`" output are non-negotiable. Extend the Project Quick Reference, but don't remove a phase or change the output directories.
+- **Diagrams convention.** archify HTML in `diagrams/`, a companion `.md` per schema, linked from the main docs — see the Diagrams section in [`conventions.md`](conventions.md). A sub-project doesn't invent its own diagram tooling or folders.
 - **`data-flows/` deliverable surface.** Agent-produced files only — no hand-written entries, no overlap with `API.md` or rules.
 - **Hook wrapper logic.** All behaviour lives in the shared runner. Local wrapper stays two lines.
 - **Hook order at SessionStart.** Always `session-start.mjs` → `architecture-context.mjs` → `parent-context.mjs`.

@@ -23,7 +23,7 @@ Cross-references: [`conventions.md`](conventions.md) • [`agentmemory` usage](.
 
 | Store | Access | Read / Write | Notes |
 |---|---|---|---|
-| `<relational DB>` | `docker exec <prefix>-<db> psql …` or the service's client | `<R / W>` | Read-only ad-hoc queries are fine; **writes/DDL need plan mode** (see [`workflow.md`](workflow.md)). |
+| `<relational DB>` | `docker exec <prefix>-<db> psql …` or the service's client | `<R / W>` | Read-only ad-hoc queries are fine; **writes/DDL need an approved lavish plan** (see [`workflow.md`](workflow.md)). |
 | `<vector store>` | `<client / HTTP>` | `<R / W>` | `<collection, dims, metric, embedding model>` |
 
 Inter-service URLs use container names (`http://<peer>:<port>`), never `localhost`. The authoritative topology + shared-data ownership is the umbrella `ARCHITECTURE.md`.

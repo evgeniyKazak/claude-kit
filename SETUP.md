@@ -26,7 +26,8 @@ Four memory layers active in every Claude session inside the stack:
 | on-demand recall | agentmemory REST + MCP | searched explicitly |
 
 Plus: automatic capture via 12 lifecycle hooks, per-project namespace isolation, a strict
-sub-project standard, and a plan-mode-first / verify-before-done workflow.
+sub-project standard, two umbrella skills (**archify** for interactive HTML diagrams, **lavish**
+for browser-based plan review), and a lavish-plan-first / verify-before-done workflow.
 
 ---
 
@@ -160,6 +161,23 @@ pull` instead and ignore that script.
 
 ---
 
+## Step 3b — Install the umbrella skills (archify + lavish)
+
+Two Claude Code skills are part of the workflow and are installed **once, at the umbrella** (not vendored — installed copies of skills go stale, so they're pulled fresh at setup time):
+
+```bash
+cd <STACK_ROOT>
+npx skills add tt-a1i/archify                          # interactive HTML diagrams
+npx skills add kunchenguid/lavish-axi --skill lavish   # browser review/annotation of HTML artifacts
+```
+
+- **archify** (`.claude/skills/archify`) — compiles typed JSON specs into self-contained interactive HTML diagrams (architecture / workflow / sequence / dataflow / lifecycle). It is the standard tool for every visual schema: project architecture, API contracts, DB relations, cross-service flows. Output goes to `diagrams/` folders; every schema gets a companion `.md` linked from the main docs — the full contract is the **Diagrams** section of `templates/umbrella/.claude/rules/conventions.md`.
+- **lavish** (`.claude/skills/lavish`) — opens agent-authored HTML artifacts in a local browser for annotation and approval (`npx -y lavish-axi <file>.html`). It replaces Claude Code plan mode in this workflow: plans are authored as visual HTML artifacts and approved in lavish — see Step 6.
+
+Sub-project sessions reach archify through the umbrella path (`node <STACK_ROOT>/.claude/skills/archify/bin/archify.mjs`) — do not install per-service copies. Create the umbrella `diagrams/` folder now: `mkdir -p <STACK_ROOT>/diagrams`.
+
+---
+
 ## Step 4 — Add each sub-project
 
 For every microservice, copy `templates/subproject/` into `<STACK_ROOT>/<service>/` and adapt:
@@ -171,7 +189,7 @@ For every microservice, copy `templates/subproject/` into `<STACK_ROOT>/<service
 >   layer in the template's required section order and any missing standard sections (`Sub-project
 >   Context`, `After Completing a Task`). Never drop what the operator already wrote.
 > - **`.claude/rules/workflow.md`** — preserve the service's existing post-task checklist and
->   forbiddens, and **ensure the mandate block is present** (plan-mode-first on non-trivial tasks,
+>   forbiddens, and **ensure the mandate block is present** (lavish-plan-first on non-trivial tasks,
 >   verify-before-done). The mandate is required in every sub-project — prepend it if the existing
 >   file lacks it; do not duplicate it if it's already there.
 > - **Other rules** (`conventions.md`, `lessons-learned.md`) — append template sections that are
@@ -186,7 +204,7 @@ For every microservice, copy `templates/subproject/` into `<STACK_ROOT>/<service
 4. `.claude/settings.local.json` → **keep the full 12-hook block** and the 3-hook SessionStart chain
    (`session-start` → `architecture-context` → `parent-context`) intact.
 5. `.claude/rules/*` → rewrite for this service's language/framework (don't ship another service's
-   `lessons-learned.md`). **`workflow.md` must carry the mandate block** (plan-mode-first +
+   `lessons-learned.md`). **`workflow.md` must carry the mandate block** (lavish-plan-first +
    verify-before-done); merge it into any existing workflow rather than replacing. Fill
    `testing.md` (real test command, where tests live, the bar) and `sources.md` (the MCP servers
    from `.mcp.json` + the datastores this service touches; the cross-stack catalog stays in umbrella
@@ -198,7 +216,7 @@ For every microservice, copy `templates/subproject/` into `<STACK_ROOT>/<service
    read-only DB queries, and read-only git don't prompt every time.
 8. `.claude/agents/flow-explainer.md` → fill the Project Quick Reference and adapt Phases 2/4/5 to
    this stack. **Do not** remove a phase or change the output directory.
-9. `data-flows/README.md` → rewrite the "what does/doesn't go here" for this service.
+9. `data-flows/README.md` → rewrite the "what does/doesn't go here" for this service. Create an empty `<service>/diagrams/` for archify output.
 10. Update umbrella `CLAUDE.md` (Sub-projects), `ARCHITECTURE.md`, and `CHANGELOG.md`.
 
 Full standard + the new-sub-project checklist: `templates/umbrella/.claude/rules/subprojects.md`.
@@ -222,15 +240,19 @@ Re-runnable: it skips assets already harvested and re-deletes any stray clone. F
 
 The rules in `templates/umbrella/.claude/rules/` are the operating system:
 
-- **`workflow.md`** — plan-mode-first, verification-before-done, post-task checklist.
+- **`workflow.md`** — lavish-plan-first, verification-before-done, post-task checklist.
 - **`subprojects.md`** — the sub-project standard and ownership matrix.
 - **`agentmemory.md`** — the git-docs-vs-agentmemory split (don't duplicate knowledge across them).
 - **`security.md`** / **`conventions.md`** / **`testing.md`** / **`glossary.md`** — supporting rules.
 - **`adr/`** — record architecturally significant decisions; `0001`/`0002` are worked examples.
 
-Internalize the mandate: every non-trivial task starts in `/plan` and is not "done" until its
-Verification section has run. This is **not** umbrella-only — each sub-project carries the same
-mandate in its own `<service>/.claude/rules/workflow.md`, mandatory for every task in that service.
+Internalize the mandate: every non-trivial task starts with a **lavish plan** — a full analysis
+of the project on its existing docs, turned into a visual HTML artifact (archify diagrams, block
+schemes, graphs), opened with `npx -y lavish-axi <plan>.html`, iterated on the operator's
+annotations, and approved **in lavish** before any change; the approved plan is recorded in a plan
+file with a `Verification` section, and the task is not "done" until that section has run. This is
+**not** umbrella-only — each sub-project carries the same mandate in its own
+`<service>/.claude/rules/workflow.md`, mandatory for every task in that service.
 
 ---
 
@@ -250,9 +272,14 @@ curl -s -H "Authorization: Bearer $TOKEN" "http://127.0.0.1:3111/agentmemory/ses
   | jq '.sessions | group_by(.project) | map({project: .[0].project, count: length})'
 # Hooks are executable
 test -x <STACK_ROOT>/.claude/shared-hooks/agentmemory-run.sh && echo "runner ok"
+# Skills installed
+test -f <STACK_ROOT>/.claude/skills/archify/SKILL.md && echo "archify ok"
+npx -y lavish-axi --help >/dev/null && echo "lavish ok"
 ```
 
-When all pass, delete this `SETUP.md` (and the `templates/` tree if you've copied it out).
+When all pass, delete this `SETUP.md` (and the `templates/` tree if you've copied it out). For
+upgrading an already-installed stack later, use [`Update.md`](Update.md) from the boilerplate repo —
+don't re-run this guide.
 
 ---
 
