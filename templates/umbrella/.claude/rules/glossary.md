@@ -24,9 +24,9 @@ Short definitions of terms used across the stack. One line each. Cross-reference
 
 ## Workflow vocabulary
 
-- **Lavish plan** — the planning medium that replaces Claude Code plan mode in this stack: a visual HTML artifact (archify diagrams, block schemes, graphs) reviewed and approved by the operator via `npx -y lavish-axi`. See `workflow.md`.
+- **Lavish plan** — the planning medium that replaces Claude Code plan mode in this stack: a visual HTML artifact (schematic schemas, block schemes, graphs) reviewed and approved by the operator via `npx -y lavish-axi`. See `workflow.md`.
 - **Plan file** — the persistent artifact of a lavish plan: `.claude/tasks/<YYYY-MM-DD>-<slug>.md` (per scope — umbrella or sub-project). Links the lavish HTML artifact and holds the approved plan with its mandatory `Verification` section.
-- **archify** — the umbrella-installed skill that compiles typed JSON specs into self-contained interactive HTML diagrams. Output lives in `diagrams/`; every schema has a companion `.md` linked from the main docs (see the Diagrams convention in `conventions.md`).
+- **schematic** — the umbrella-installed skill that compiles typed JSON specs into self-contained interactive HTML diagrams. Output lives in `diagrams/`; every schema has a companion `.md` linked from the main docs (see the Diagrams convention in `conventions.md`).
 - **lavish** — the umbrella-installed skill that opens agent-authored HTML artifacts in the browser for annotation and approval (`npx -y lavish-axi <file>.html`).
 - **Verification** — the section of a plan listing the concrete checks that confirm success. Required for every non-trivial plan.
 - **ADR** — Architecture Decision Record. A short doc capturing the rationale behind one architecturally significant decision. Lives under `.claude/adr/NNNN-slug.md`.

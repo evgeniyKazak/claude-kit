@@ -56,17 +56,22 @@ while IFS= read -r s; do
 done < <(find . -path ./.agents -prune -o -name settings.local.json -path '*/.claude/*' -print 2>/dev/null)
 
 # --- skills ---
-if [ -f .claude/skills/archify/SKILL.md ]; then
-  ok "skill installed: archify"
-  if [ -f "$MANIFEST" ] && [ -f .claude/skills/archify/skill-release.json ]; then
-    want=$(jq -r '.skills.archify.version // empty' "$MANIFEST")
-    have=$(jq -r '.version // empty' .claude/skills/archify/skill-release.json)
+if [ -f .claude/skills/schematic/SKILL.md ]; then
+  ok "skill installed: schematic"
+  if [ -f "$MANIFEST" ] && [ -f .claude/skills/schematic/skill-release.json ]; then
+    want=$(jq -r '.skills["schematic"].version // empty' "$MANIFEST")
+    have=$(jq -r '.version // empty' .claude/skills/schematic/skill-release.json)
     if [ -n "$want" ] && [ "$want" != "$have" ]; then
-      warn "archify version drift: installed $have, manifest $want (upgrade skills only via UPDATE.md)"
+      warn "schematic version drift: installed $have, manifest $want (upgrade skills only via UPDATE.md)"
     fi
   fi
 else
-  fail "skill missing: .claude/skills/archify (npx skills add tt-a1i/archify)"
+  fail "skill missing: .claude/skills/schematic (copy skills/schematic from the kit — SETUP.md Step 3b)"
+fi
+# The upstream skill this one was forked from must not sit alongside it: its dataflow
+# renderer caps stages at 5 and rejects the specs this stack generates.
+if [ -e .claude/skills/archify ]; then
+  fail "stale skill present: .claude/skills/archify — this stack uses schematic; remove the old copy"
 fi
 if [ -d .claude/skills/lavish ]; then
   ok "skill installed: lavish"

@@ -39,7 +39,7 @@ curl -s http://localhost:<port>/<health-path>
 ```
 <top-level source tree with one-line role comments per directory>
 data-flows/                 # flow-explainer agent output (one .md per documented flow)
-diagrams/                   # archify HTML schemas (+ companion .md per schema)
+diagrams/                   # schematic HTML schemas (+ companion .md per schema)
 .claude/agents/             # sub-agents — flow-explainer.md is required
 .claude/rules/              # conventions, workflow, testing, sources, lessons-learned
 .claude/tasks/              # plan files (one per non-trivial task; see workflow mandate)
@@ -51,5 +51,5 @@ diagrams/                   # archify HTML schemas (+ companion .md per schema)
 - [ ] `CHANGELOG.md` — add an entry about what was done
 - [ ] `.claude/rules/conventions.md` — new convention discovered
 - [ ] `.claude/rules/lessons-learned.md` — an error occurred → log it
-- [ ] `diagrams/` — a schema changed → archify HTML + companion `.md` updated + link from `CLAUDE.md`/`API.md`
+- [ ] `diagrams/` — a schema changed → schematic HTML + companion `.md` updated + link from `CLAUDE.md`/`API.md`
 - [ ] **Umbrella reporting** — endpoint/port/protocol, new shared data, new sibling dependency, new model, or an architecturally significant decision → update the umbrella docs in the **same task** (see `.claude/rules/workflow.md`).

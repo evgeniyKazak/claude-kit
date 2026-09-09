@@ -35,10 +35,14 @@ test -d <STACK_ROOT>/.claude/skills/lavish || \
 npx -y lavish-axi --help >/dev/null && echo "lavish ok"
 ```
 
-While here, check archify too (Step 3 installs it if missing):
+While here, check the diagram skill (Step 3 copies it in if missing) and make sure the upstream
+skill it was forked from is not sitting alongside it:
 
 ```bash
-test -f <STACK_ROOT>/.claude/skills/archify/SKILL.md && echo "archify ok" || echo "archify MISSING"
+test -f <STACK_ROOT>/.claude/skills/schematic/SKILL.md \
+  && echo "schematic ok" || echo "schematic MISSING"
+test -e <STACK_ROOT>/.claude/skills/archify \
+  && echo "STALE archify present - delete it" || echo "no stale archify"
 ```
 
 ## Step 1 — Inventory the target
@@ -60,9 +64,10 @@ For the **umbrella** (`<STACK_ROOT>`):
   mandate (`/plan`) or the current lavish mandate? Does `conventions.md` have the **Diagrams**
   section?
 - `.claude/agents/` — are `code-reviewer`, `flow-explainer`, `stack-equipper` present, and do the
-  first two carry the archify wiring (Phase 6 archify output, "Architecture Visualization"
-  section)?
-- `.claude/skills/` — `archify`? `lavish`? anything else the current SETUP installs?
+  first two carry the diagram wiring (Phase 6 schematic output, "Architecture Visualization"
+  section)? Do they still point at the old `.claude/skills/archify` path?
+- `.claude/skills/` — `schematic`? `lavish`? a stale `archify` to delete? anything else the
+  current SETUP installs?
 - `.claude/tasks/README.md` — lavish-artifact convention present?
 - `diagrams/` — does the folder exist?
 - Hook block in `.claude/settings.local.json` — all 12 hook points, SessionStart chain intact
@@ -70,7 +75,7 @@ For the **umbrella** (`<STACK_ROOT>`):
   update — flag drift, fix only with explicit approval.**
 
 For **each sub-project** (`<STACK_ROOT>/<service>`): same questions against
-`templates/subproject/` — `workflow.md` mandate version, `flow-explainer` archify wiring,
+`templates/subproject/` — `workflow.md` mandate version, `flow-explainer` diagram wiring,
 `diagrams/` folder, `tasks/README.md`, the 12-hook block, `sources.md`/`testing.md` presence.
 
 Produce a table: `area · installed state · current template state · action (install / merge /
@@ -80,7 +85,7 @@ skip) · risk`. This table feeds the plan.
 
 Author the update plan as a **visual HTML artifact** — this is the centerpiece of the run:
 
-- an archify diagram of the target stack with the touched areas highlighted;
+- a schematic schema of the target stack with the touched areas highlighted;
 - a block scheme of the update order (skills → umbrella rules → agents → sub-projects → docs);
 - **an explicit before/after panel for `workflow.md`** — the mandate change (plan-mode → lavish)
   is the most operator-visible edit and must be called out prominently, per level, not buried;
@@ -105,7 +110,9 @@ Work through the approved plan in order. The merge discipline is the same as `SE
 1. **Skills** — install what's missing at the umbrella:
    ```bash
    cd <STACK_ROOT>
-   test -f .claude/skills/archify/SKILL.md || npx skills add tt-a1i/archify -y
+   test -f .claude/skills/schematic/SKILL.md \
+     || rsync -a --exclude node_modules <KIT>/skills/schematic/ .claude/skills/schematic/
+   rm -rf .claude/skills/archify   # forked into schematic; upstream rejects our specs
    test -d .claude/skills/lavish          || npx skills add kunchenguid/lavish-axi --skill lavish -y
    mkdir -p diagrams
    ```
@@ -116,7 +123,7 @@ Work through the approved plan in order. The merge discipline is the same as `SE
    that predates the markers gets them added around the matching section during this update.
    **Preserve** every locally added rule, lesson, and convention — merge, never overwrite.
 3. **Agents** — bring `code-reviewer.md` and both `flow-explainer.md` variants up to the current
-   archify-wired versions. If the operator customized an agent (Project Quick Reference, extra
+   diagram-wired versions. If the operator customized an agent (Project Quick Reference, extra
    checklist items), graft those customizations onto the new version rather than dropping either.
    Note: an already-open Claude session caches agent definitions — new sessions pick up the edits.
 4. **Sub-projects** — per service: mandate block in `workflow.md`, `diagrams/` folder,
@@ -125,7 +132,8 @@ Work through the approved plan in order. The merge discipline is the same as `SE
 5. **Doctor + manifest** — copy the current `scripts/kit-doctor.sh` from `<KIT>/scripts/` to
    `<STACK_ROOT>/scripts/` (`chmod +x`), then rewrite `.claude/kit-manifest.json`: new `version`
    (the target tag) and `commit`, `updated_at` = today, refreshed skill versions
-   (`.claude/skills/archify/skill-release.json`, `skills-lock.json` hash), and the current
+   (`.claude/skills/schematic/skill-release.json` plus a recomputed tree hash — see SETUP.md
+   "Record the install manifest"; `skills-lock.json` covers lavish only), and the current
    `modules` list. Commit the updated `skills-lock.json` too.
 6. **Docs** — update the target's `CLAUDE.md` Key Rules (lavish mandate, diagrams rule),
    `ARCHITECTURE.md` if new folders/contracts appeared, and append the update to the umbrella
@@ -149,8 +157,9 @@ Plus the update-specific checks:
 ```bash
 # Mandate upgraded everywhere (no stale plan-mode mandate lines)
 grep -rn "plan mode\|/plan" <STACK_ROOT>/.claude/rules/ <STACK_ROOT>/*/.claude/rules/ || echo "clean"
-# Agents carry archify wiring
-grep -l "archify" <STACK_ROOT>/.claude/agents/*.md <STACK_ROOT>/*/.claude/agents/flow-explainer.md
+# Agents carry the diagram wiring, and nothing still points at the removed upstream skill
+grep -l "schematic" <STACK_ROOT>/.claude/agents/*.md <STACK_ROOT>/*/.claude/agents/flow-explainer.md
+grep -rn "skills/archify" <STACK_ROOT>/.claude <STACK_ROOT>/*/.claude || echo "no stale archify paths"
 # lavish CLI runs
 npx -y lavish-axi --help >/dev/null && echo "lavish ok"
 # A fresh child session still shows <architecture-context> + <parent-project-context>

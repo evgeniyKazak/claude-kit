@@ -5,7 +5,7 @@
 Non-negotiable. Every task touched inside this service follows these — no "it's small" shortcuts.
 
 <!-- claude-kit:begin mandate v2 -->
-1. **Plan with lavish on non-trivial tasks.** Any non-trivial change starts with a full analysis of this service based on the existing docs (`CLAUDE.md`, `.claude/rules/`, `data-flows/`, `diagrams/`, umbrella `ARCHITECTURE.md`). Author the plan as an **HTML artifact that explains as much as possible visually** (archify diagrams, block schemes, graphs) at `.claude/tasks/<YYYY-MM-DD>-<slug>.html`, open it with `npx -y lavish-axi <file>.html`, iterate on the operator's annotations (`npx -y lavish-axi poll`), and get approval **in lavish**. The approved plan is then recorded in a plan file (`.claude/tasks/<YYYY-MM-DD>-<slug>.md`, see [`../tasks/README.md`](../tasks/README.md)) that links the lavish artifact and **must** include a `Verification` section. No code or config change before approval. (archify is installed at the umbrella: `node <STACK_ROOT>/.claude/skills/archify/bin/archify.mjs`.)
+1. **Plan with lavish on non-trivial tasks.** Any non-trivial change starts with a full analysis of this service based on the existing docs (`CLAUDE.md`, `.claude/rules/`, `data-flows/`, `diagrams/`, umbrella `ARCHITECTURE.md`). Author the plan as an **HTML artifact that explains as much as possible visually** (schematic schemas, block schemes, graphs) at `.claude/tasks/<YYYY-MM-DD>-<slug>.html`, open it with `npx -y lavish-axi <file>.html`, iterate on the operator's annotations (`npx -y lavish-axi poll`), and get approval **in lavish**. The approved plan is then recorded in a plan file (`.claude/tasks/<YYYY-MM-DD>-<slug>.md`, see [`../tasks/README.md`](../tasks/README.md)) that links the lavish artifact and **must** include a `Verification` section. No code or config change before approval. (the skill is vendored in the kit and installed at the umbrella: `node <STACK_ROOT>/.claude/skills/schematic/bin/archify.mjs` — the binary keeps its upstream name.)
 2. **Verify before done.** A task is complete only when its Verification section has been executed and the results reported. No "should work — declaring done".
 3. **Capture lessons.** A non-trivial failure gets a `lessons-learned.md` entry the moment it happens.
 <!-- claude-kit:end mandate -->
@@ -36,7 +36,7 @@ Service-level detail (where tests live, the exact command, the bar for "needs a 
 2. **CHANGELOG.md** — add an entry at the top (`## YYYY-MM-DD` → 1-2 lines per item).
 3. **.claude/rules/** — new code convention → `conventions.md`; new domain knowledge → the matching rules file.
 4. **lessons-learned.md** — if an error was made, log it immediately (format is in the file).
-5. **diagrams/** — a schema (architecture, API contract, DB relations, flow) was created or changed → refresh the archify HTML in `diagrams/`, update its companion `.md`, and link it from `CLAUDE.md` / `API.md`. See the Diagrams convention in umbrella `.claude/rules/conventions.md`.
+5. **diagrams/** — a schema (architecture, API contract, DB relations, flow) was created or changed → refresh the schematic HTML in `diagrams/`, update its companion `.md`, and link it from `CLAUDE.md` / `API.md`. See the Diagrams convention in umbrella `.claude/rules/conventions.md`.
 
 ## Umbrella reporting (architectural changes)
 

@@ -10,6 +10,7 @@ on:
       - "docs/boilerplate-architecture.json"
       - "docs/boilerplate-architecture.html"
       - "scripts/render-diagram-png.mjs"
+      - "skills/schematic/**"
       - ".github/workflows/diagram.yml"
   pull_request:
     branches: [main]
@@ -17,6 +18,7 @@ on:
       - "docs/boilerplate-architecture.json"
       - "docs/boilerplate-architecture.html"
       - "scripts/render-diagram-png.mjs"
+      - "skills/schematic/**"
       - ".github/workflows/diagram.yml"
   workflow_dispatch:
 
@@ -30,14 +32,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Fetch archify (direct clone — skills CLI install path varies in CI)
-        run: |
-          git clone --depth 1 https://github.com/tt-a1i/archify /tmp/archify
-          test -f /tmp/archify/archify/bin/archify.mjs
+      # The diagram skill is vendored in this repo, so CI validates with the exact
+      # code a stack receives — no clone, no network, no drift against upstream.
       - name: Validate architecture spec (showcase)
         run: |
           node --version
-          node /tmp/archify/archify/bin/archify.mjs validate architecture docs/boilerplate-architecture.json --quality showcase
+          test -f skills/schematic/bin/archify.mjs
+          node skills/schematic/bin/archify.mjs validate architecture docs/boilerplate-architecture.json --quality showcase
       - name: Render PNG
         run: |
           npm install --no-save puppeteer-core@23

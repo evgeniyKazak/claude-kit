@@ -20,18 +20,20 @@ It is **documentation + templates**, not an installer. The work of standing it u
   and a sub-project standard that every service follows identically.
 - **Reusable agents** — a cross-service `flow-explainer`, a single-service `flow-explainer`, and
   a stack-agnostic `code-reviewer` — all wired to visualize architecture, API contracts, and DB
-  relations with **archify** (interactive HTML diagrams in `diagrams/`, a companion `.md` per schema).
+  relations with **schematic** (interactive HTML diagrams in `diagrams/`, a companion `.md` per schema).
 - **A workflow mandate** — lavish-plan-first (plans are visual HTML artifacts reviewed and approved
   in the browser via **lavish**), verification-before-done, baked into the rules.
-- **Two umbrella skills** — [`tt-a1i/archify`](https://github.com/tt-a1i/archify) and
-  [`kunchenguid/lavish-axi`](https://github.com/kunchenguid/lavish-axi), installed at setup time via
-  `npx skills add` (never vendored).
+- **Two umbrella skills** — **schematic**, vendored in this kit under `skills/` (a fork of
+  [`tt-a1i/archify`](https://github.com/tt-a1i/archify) with every layout ceiling raised to 200; see
+  `skills/schematic/FORK.md`), and [`kunchenguid/lavish-axi`](https://github.com/kunchenguid/lavish-axi),
+  installed at setup time via `npx skills add`. Do **not** install upstream archify alongside —
+  `kit-doctor` fails if you do, because its 5-stage dataflow cap rejects specs this kit generates.
 
 ## Architecture
 
 ![Boilerplate architecture](docs/boilerplate-architecture.png)
 
-The PNG is rendered by CI from the archify spec on every push (no manual export). Interactive
+The PNG is rendered by CI from the diagram spec on every push (no manual export). Interactive
 version (search, route tracing, dark/light, PNG/SVG export): open
 [`docs/boilerplate-architecture.html`](docs/boilerplate-architecture.html) in a browser — or review it
 with `npx -y lavish-axi docs/boilerplate-architecture.html`.
@@ -43,7 +45,8 @@ SETUP.md                       # ← start here: the step-by-step setup guide
 UPDATE.md                      # upgrade an already-installed stack to the current boilerplate
 CHANGELOG.md                   # kit versions + per-release Migration sections
 scripts/                       # kit-doctor.sh (conformance), CI lint/render helpers
-docs/                          # boilerplate architecture diagram (archify HTML + CI-rendered PNG)
+docs/                          # boilerplate architecture diagram (HTML + CI-rendered PNG)
+skills/schematic/              # vendored diagram skill (fork of tt-a1i/archify — see its FORK.md)
 templates/
 ├── infra/                     # ollama + agentmemory docker services, env examples
 ├── umbrella/                  # the stack-root .claude/ + CLAUDE/ARCHITECTURE/CHANGELOG/BACKLOG
@@ -58,7 +61,7 @@ templates/
    NVIDIA-on-Linux example, and the right LLM runtime differs on CPU-only and Apple Silicon hosts.
 2. Copy `templates/infra/*` into your stack, generate a bearer, bring up `ollama` + `agentmemory`.
 3. Copy `templates/umbrella/.claude/` to your stack root; fill `CLAUDE.md` + `ARCHITECTURE.md`.
-4. Install the umbrella skills: `npx skills add tt-a1i/archify -y` + `npx skills add kunchenguid/lavish-axi --skill lavish -y`.
+4. Install the umbrella skills: copy `skills/schematic/` into `.claude/skills/` + `npx skills add kunchenguid/lavish-axi --skill lavish -y`.
 5. Copy `templates/subproject/` once per service; keep the 12-hook block intact.
 6. Run the validation checks at the end of `SETUP.md`.
 

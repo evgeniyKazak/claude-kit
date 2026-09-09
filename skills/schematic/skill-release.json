@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "skillId": "schematic",
+  "channel": "vendored",
+  "version": "2.16.0-kit.1",
+  "source": {
+    "repository": "https://github.com/evgeniyKazak/claude-kit",
+    "vendoredFrom": "https://github.com/tt-a1i/archify",
+    "vendoredVersion": "2.16.0"
+  }
+}
