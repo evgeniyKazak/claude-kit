@@ -31,15 +31,15 @@
       },
       {
         "id": "diagram-pipeline",
-        "label": "Archify diagram pipeline",
+        "label": "Schematic diagram pipeline",
         "focus": [
           "umbrella-session",
           "agents",
-          "archify",
+          "schematic",
           "diagrams",
           "docs"
         ],
-        "note": "Agents author typed JSON specs; archify delivers interactive HTML into diagrams/, with a companion .md linked from the main docs."
+        "note": "Agents author typed JSON specs; schematic delivers interactive HTML into diagrams/, with a companion .md linked from the main docs."
       }
     ]
   },
@@ -116,9 +116,9 @@
       ]
     },
     {
-      "id": "archify",
+      "id": "schematic",
       "type": "backend",
-      "label": "archify skill",
+      "label": "schematic skill",
       "sublabel": "JSON spec -> HTML",
       "pos": [
         940,
@@ -210,7 +210,7 @@
         "subproject-session",
         "lavish",
         "agents",
-        "archify",
+        "schematic",
         "docs",
         "diagrams",
         "hooks"
@@ -279,15 +279,15 @@
       "labelSegment": 1
     },
     {
-      "id": "agents-archify",
+      "id": "agents-schematic",
       "from": "agents",
-      "to": "archify",
+      "to": "schematic",
       "label": "spec -> deliver",
       "labelDy": -14
     },
     {
-      "id": "archify-diagrams",
-      "from": "archify",
+      "id": "schematic-diagrams",
+      "from": "schematic",
       "to": "diagrams",
       "label": "HTML",
       "fromSide": "bottom",

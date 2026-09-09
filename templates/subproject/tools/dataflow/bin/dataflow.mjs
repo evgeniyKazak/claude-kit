@@ -19,7 +19,7 @@ const { createService, ROOT } = await import('../src/program.mjs');
 const { locate, listSymbols } = await import('../src/locate.mjs');
 const { trace } = await import('../src/trace.mjs');
 const { callersOf } = await import('../src/callers.mjs');
-const { emitArchify } = await import('../src/emit-archify.mjs');
+const { emitSchematic } = await import('../src/emit-schematic.mjs');
 const { findReferences } = await import('../src/refs.mjs');
 
 const USAGE = `dataflow — call-graph extraction via the TypeScript compiler API
@@ -27,7 +27,7 @@ const USAGE = `dataflow — call-graph extraction via the TypeScript compiler AP
   trace   <file> <symbol>   nested JSON of everything the symbol calls
   refs    <file> <symbol>   flat JSON of everywhere the symbol is used
   paths   <file> <symbol>   reverse: every entry point that can reach the symbol
-  archify <file> <symbol>   paths, emitted as an archify dataflow specification
+  schematic <file> <symbol> paths, emitted as a schematic dataflow specification
   symbols <file>            list declarations in a file (to find a <symbol>)
 
 <symbol> is "method", "Class.method", "Class", or a 1-based line number.
@@ -37,10 +37,10 @@ Options
   --scope=seed|repo  program root set                          (trace: seed, refs/paths: repo)
   --app=NAME         paths: keep only entry points in that app    (e.g. offers)
   --fanout=N         paths: max callers expanded per symbol       (default 40)
-  --max-paths=N      archify: routes to keep, shortest first       (default 12)
-  --title=TEXT       archify: diagram title
-  --store=TEXT       archify: label of the final storage node
-  --quality=P        archify: standard|showcase                    (default standard)
+  --max-paths=N      schematic: routes to keep, shortest first       (default 12)
+  --title=TEXT       schematic: diagram title
+  --store=TEXT       schematic: label of the final storage node
+  --quality=P        schematic: standard|showcase                    (default standard)
   --external         descend into node_modules                 (default: stop at the boundary)
   --logs             keep logger calls                         (default: dropped)
   --full             re-expand a target on every occurrence    (default: mark "repeated")
@@ -71,7 +71,7 @@ if (!fs.existsSync(absFile)) { console.error(`error: no such file: ${absFile}`);
 
 const note = (msg) => { if (!flags.quiet) process.stderr.write(`${msg}\n`); };
 const started = Date.now();
-const defaultScope = ['refs', 'paths', 'archify'].includes(command) ? 'repo' : 'seed';
+const defaultScope = ['refs', 'paths', 'schematic'].includes(command) ? 'repo' : 'seed';
 const scope = flags.scope ?? defaultScope;
 
 note(`[dataflow] scope=${scope} building program…`);
@@ -99,7 +99,7 @@ if (command === 'symbols') {
     includeLogs: !!flags.logs,
     full: !!flags.full,
   });
-} else if (command === 'paths' || command === 'archify') {
+} else if (command === 'paths' || command === 'schematic') {
   if (!symbolArg) { console.error(`error: ${command} needs a <symbol>`); process.exit(1); }
   if (scope !== 'repo') note(`[dataflow] warning: ${command} with scope != repo misses callers in other apps`);
   const target = locate(sourceFile, symbolArg);
@@ -111,7 +111,7 @@ if (command === 'symbols') {
   if (command === 'paths') {
     result = walked;
   } else {
-    const { spec, report } = emitArchify(walked, {
+    const { spec, report } = emitSchematic(walked, {
       title: flags.title ?? null,
       maxPaths: Number(flags['max-paths'] ?? 12),
       quality: flags.quality ?? 'standard',
