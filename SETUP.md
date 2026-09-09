@@ -26,7 +26,7 @@ Four memory layers active in every Claude session inside the stack:
 | on-demand recall | agentmemory REST + MCP | searched explicitly |
 
 Plus: automatic capture via 12 lifecycle hooks, per-project namespace isolation, a strict
-sub-project standard, two umbrella skills (**archify** for interactive HTML diagrams, **lavish**
+sub-project standard, two umbrella skills (**schematic** for interactive HTML diagrams, **lavish**
 for browser-based plan review), and a lavish-plan-first / verify-before-done workflow.
 
 ---
@@ -161,24 +161,35 @@ pull` instead and ignore that script.
 
 ---
 
-## Step 3b — Install the umbrella skills (archify + lavish)
+## Step 3b — Install the umbrella skills (schematic + lavish)
 
-Two Claude Code skills are part of the workflow and are installed **once, at the umbrella** (not vendored — installed copies of skills go stale, so they're pulled fresh at setup time):
+Two Claude Code skills are part of the workflow and are installed **once, at the umbrella**. They arrive by different routes, on purpose:
 
 ```bash
 cd <STACK_ROOT>
-npx skills add tt-a1i/archify -y                       # interactive HTML diagrams
+mkdir -p .claude/skills
+rsync -a --exclude node_modules <KIT>/skills/schematic/ .claude/skills/schematic/
 npx skills add kunchenguid/lavish-axi --skill lavish -y   # browser review/annotation of HTML artifacts
 ```
 
-The trailing `-y` is the skills CLI's own `--yes` flag — without it the CLI stops on an interactive "Which agents do you want to install to?" prompt and hangs in non-interactive runs (CI, scripts). Note that `npx -y` only answers npx's install prompt, not the CLI's.
+- **schematic** (`.claude/skills/schematic`) — **vendored in this kit**, under `skills/schematic/`. Compiles typed JSON specs into self-contained interactive HTML diagrams (architecture / workflow / sequence / dataflow / lifecycle). It is the standard tool for every visual schema: project architecture, API contracts, DB relations, cross-service flows. Output goes to `diagrams/` folders; every schema gets a companion `.md` linked from the main docs — the full contract is the **Diagrams** section of `templates/umbrella/.claude/rules/conventions.md`.
+- **lavish** (`.claude/skills/lavish`) — installed fresh from its own repository, because it is upstream code this kit does not modify. Opens agent-authored HTML artifacts in a local browser for annotation and approval (`npx -y lavish-axi <file>.html`). It replaces Claude Code plan mode in this workflow — see Step 6.
 
-- **archify** (`.claude/skills/archify`) — compiles typed JSON specs into self-contained interactive HTML diagrams (architecture / workflow / sequence / dataflow / lifecycle). It is the standard tool for every visual schema: project architecture, API contracts, DB relations, cross-service flows. Output goes to `diagrams/` folders; every schema gets a companion `.md` linked from the main docs — the full contract is the **Diagrams** section of `templates/umbrella/.claude/rules/conventions.md`.
-- **lavish** (`.claude/skills/lavish`) — opens agent-authored HTML artifacts in a local browser for annotation and approval (`npx -y lavish-axi <file>.html`). It replaces Claude Code plan mode in this workflow: plans are authored as visual HTML artifacts and approved in lavish — see Step 6.
+The trailing `-y` on the skills CLI is its own `--yes` flag — without it the CLI stops on an interactive "Which agents do you want to install to?" prompt and hangs in non-interactive runs (CI, scripts). Note that `npx -y` only answers npx's install prompt, not the CLI's.
 
-Sub-project sessions reach archify through the umbrella path (`node <STACK_ROOT>/.claude/skills/archify/bin/archify.mjs`) — do not install per-service copies. Create the umbrella `diagrams/` folder now: `mkdir -p <STACK_ROOT>/diagrams`.
+### Why schematic is vendored, and why archify must not be installed
 
-Commit the generated `skills-lock.json` in the target stack — it pins what was actually installed. Skills are upgraded **only during `UPDATE.md` runs**, never ad hoc.
+`schematic` is a fork of [`tt-a1i/archify`](https://github.com/tt-a1i/archify) 2.16.0 carried in this kit with local changes (`skills/schematic/FORK.md` records every one). It is vendored rather than pulled because there is no upstream to pull it *from* — and pulling the original would actively break a stack built from this kit:
+
+- upstream caps a `dataflow` at **5 stages**; a generated inbound-path diagram runs to ten or more, and upstream rejects it outright;
+- upstream fixes `dataflow` rows at 5 and `workflow` columns at 6; this fork raises every ceiling to 200 and wraps a wide `lifecycle` into stacked row blocks;
+- upstream ships an update checker pointed at its own release channel. The vendored copy has that channel removed, so it never offers to "upgrade" to the version this kit deliberately diverged from.
+
+**Do not run `npx skills add tt-a1i/archify` in a stack built from this kit.** `scripts/kit-doctor.sh` fails when `.claude/skills/archify` exists, precisely to catch a copy reinstalled out of habit. Migrating a stack that already has one: `rm -rf .claude/skills/archify` after the copy above, then re-run the doctor.
+
+Sub-project sessions reach the skill through the umbrella path — `node <STACK_ROOT>/.claude/skills/schematic/bin/archify.mjs`; the binary keeps its original name — and do not install per-service copies. Create the umbrella `diagrams/` folder now: `mkdir -p <STACK_ROOT>/diagrams`.
+
+The lavish install writes `skills-lock.json`; commit it in the target stack — it pins what was actually installed. Skills are upgraded **only during `UPDATE.md` runs**, never ad hoc.
 
 ### Record the install manifest
 
@@ -190,11 +201,12 @@ jq -n \
   --arg version "$(git -C <KIT> describe --tags --abbrev=0)" \
   --arg commit  "$(git -C <KIT> rev-parse --short HEAD)" \
   --arg date    "$(date +%F)" \
-  --arg arc_v   "$(jq -r .version .claude/skills/archify/skill-release.json)" \
-  --arg arc_h   "$(jq -r '.skills.archify.computedHash' skills-lock.json)" \
+  --arg bd_v    "$(jq -r .version .claude/skills/schematic/skill-release.json)" \
+  --arg bd_h    "$(find .claude/skills/schematic -type f -not -path '*/node_modules/*' -print0 \
+                    | sort -z | xargs -0 shasum -a 256 | shasum -a 256 | cut -d' ' -f1)" \
   '{kit: "evgeniyKazak/claude-kit", version: $version, commit: $commit,
     installed_at: $date, updated_at: null,
-    skills: {archify: {version: $arc_v, hash: $arc_h}, lavish: {version: "npx-latest"}},
+    skills: {"schematic": {version: $bd_v, hash: $bd_h}, lavish: {version: "npx-latest"}},
     modules: ["infra", "umbrella", "stack-equipper"]}' \
   > .claude/kit-manifest.json
 ```
@@ -250,8 +262,9 @@ For every microservice, copy `templates/subproject/` into `<STACK_ROOT>/<service
    read-only DB queries, and read-only git don't prompt every time.
 8. `.claude/agents/flow-explainer.md` → fill the Project Quick Reference and adapt Phases 2/4/5 to
    this stack. **Do not** remove a phase or change the output directory.
-9. `data-flows/README.md` → rewrite the "what does/doesn't go here" for this service. Create an empty `<service>/diagrams/` for archify output.
-10. Update umbrella `CLAUDE.md` (Sub-projects), `ARCHITECTURE.md`, and `CHANGELOG.md`.
+9. `data-flows/README.md` → rewrite the "what does/doesn't go here" for this service. Create an empty `<service>/diagrams/` for schematic output.
+10. **TypeScript services only** — copy `templates/subproject/tools/dataflow/` into the service (next to its `tsconfig.json`, so the tool resolves the project's `paths` aliases exactly as the build does) and `chmod +x tools/dataflow/bin/dataflow.mjs`. It is the call-graph extractor the `flow-explainer` agent's Phase 5b requires for any "where is this field written" question. Skip it for services in other languages and delete the Phase 5b section from their agent.
+11. Update umbrella `CLAUDE.md` (Sub-projects), `ARCHITECTURE.md`, and `CHANGELOG.md`.
 
 Full standard + the new-sub-project checklist: `templates/umbrella/.claude/rules/subprojects.md`.
 
@@ -281,7 +294,7 @@ The rules in `templates/umbrella/.claude/rules/` are the operating system:
 - **`adr/`** — record architecturally significant decisions; `0001`/`0002` are worked examples.
 
 Internalize the mandate: every non-trivial task starts with a **lavish plan** — a full analysis
-of the project on its existing docs, turned into a visual HTML artifact (archify diagrams, block
+of the project on its existing docs, turned into a visual HTML artifact (schematic schemas, block
 schemes, graphs), opened with `npx -y lavish-axi <plan>.html`, iterated on the operator's
 annotations, and approved **in lavish** before any change; the approved plan is recorded in a plan
 file with a `Verification` section, and the task is not "done" until that section has run. This is

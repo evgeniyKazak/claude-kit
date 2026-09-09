@@ -15,12 +15,12 @@ env files, shared docs, stack-wide decisions.>
 
 ## Key Rules
 1. **English-only documentation.** All `.md` files in this repo are English.
-2. **Plan every non-trivial task with lavish, not plan mode.** Full analysis on the existing docs → the plan as a visual HTML artifact (archify diagrams, block schemes, graphs) → reviewed and approved in lavish (`npx -y lavish-axi <plan>.html`) → recorded in a plan file with a `Verification` section. See `.claude/rules/workflow.md`.
+2. **Plan every non-trivial task with lavish, not plan mode.** Full analysis on the existing docs → the plan as a visual HTML artifact (schematic schemas, block schemes, graphs) → reviewed and approved in lavish (`npx -y lavish-axi <plan>.html`) → recorded in a plan file with a `Verification` section. See `.claude/rules/workflow.md`.
 3. **Verification before "done".** A task is not complete until the plan's Verification section has been executed and reported.
 4. **Umbrella vs sub-project scope.** Service-specific code/conventions live in that service's directory. The umbrella owns `docker-compose.yml`, `.env`, `agentmemory.env`, `ARCHITECTURE.md`, shared hooks, the model list, cross-service infra.
 5. **Inter-service URLs use container names** (`<service>:<port>`) inside the docker network. `127.0.0.1` is reserved for host-bound services (agentmemory REST on `3111`).
 6. **Secrets never inline.** All credentials read from `.env`, `agentmemory.env`, or a service's own credential store. See `.claude/rules/security.md`.
-7. **Schemas are archify diagrams.** Architecture, API contracts, DB relations, and cross-service flows are visualized with the archify skill: HTML in `diagrams/`, a companion `.md` per schema, linked from the main docs. See the Diagrams convention in `.claude/rules/conventions.md`.
+7. **Schemas are schematic schemas.** Architecture, API contracts, DB relations, and cross-service flows are visualized with the schematic skill: HTML in `diagrams/`, a companion `.md` per schema, linked from the main docs. See the Diagrams convention in `.claude/rules/conventions.md`.
 
 ## Project Rules
 Detailed rules in `.claude/rules/`:
@@ -64,7 +64,7 @@ Update only what changed:
 - [ ] **`CHANGELOG.md`** — every umbrella-level change
 - [ ] **`BACKLOG.md`** — a strategic task appeared or closed
 - [ ] **`.claude/rules/*`** — a new convention / lesson / verification primitive / security rule
-- [ ] **`diagrams/`** — a schema changed → archify HTML + companion `.md` updated + doc link present
+- [ ] **`diagrams/`** — a schema changed → schematic HTML + companion `.md` updated + doc link present
 - [ ] **`.claude/adr/`** — an architecturally significant decision
 - [ ] **Sub-project docs** — when the task crossed into a sub-project, follow its own checklist
 
