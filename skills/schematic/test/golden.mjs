@@ -168,7 +168,7 @@ console.log('version sync');
 
 const pkg = JSON.parse(fs.readFileSync(path.join(skillRoot, 'package.json'), 'utf8'));
 check('template generator meta matches package.json version',
-  template.includes(`<meta name="generator" content="archify ${pkg.version}">`),
+  template.includes(`<meta name="generator" content="schematic ${pkg.version}">`),
   `package.json says ${pkg.version}`);
 
 const lock = JSON.parse(fs.readFileSync(path.join(skillRoot, 'package-lock.json'), 'utf8'));

@@ -47,7 +47,17 @@ never to hide local drift.
    `../scripts/run-tests.mjs` — those live in the upstream repository and were not
    shipped with the Skill. Devtime deps (`ajv`, `parse5`, `saxes`, `simple-icons`) are
    also not installed. Only the generated artefacts under `renderers/shared/` are usable.
-3. **`bin/archify.mjs` still carries the upstream command name** in usage text and in
+3. **`test/golden.mjs` cannot run in this layout.** It resolves the skill root one directory too
+   high, looking for `<parent>/examples/web-app.html`. Verified identical in a pristine upstream
+   copy, so it is a packaging defect, not fork drift: the skill was extracted from a repository
+   where it lived one level deeper. Same family as (2). Its identity assertions were kept in sync
+   with the rename so they pass once the harness is fixed.
+4. **Deliberately kept upstream, do not "clean" these:**
+   - `bin/archify.mjs` — the binary name; the vendored tests resolve it by path.
+   - `Archify.*` — the viewer's JS namespace, ~400 references in `assets/template.html` and 23 test
+     files depend on it. Renaming buys nothing a reader can see and destroys the baseline diff.
+   - `tt-a1i/archify` in the docs — upstream attribution the MIT licence requires.
+5. **`bin/archify.mjs` still carries the upstream command name** in usage text and in
    every `references/*.md` example.
 
 ## Local changes

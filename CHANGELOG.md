@@ -4,6 +4,41 @@ Versioning: semver, annotated git tags (`vX.Y.Z`). Run installs and updates from
 never from bare `main`. Each entry carries a **Migration** section — the ordered steps `UPDATE.md`
 applies to bring an installed stack from the previous version to this one.
 
+## 0.5.0 — 2026-09-09
+
+The diagram skill is vendored and renamed; upstream archify is retired.
+
+- **`skills/schematic/`** — the diagram skill now ships *in this repo* instead of being pulled with
+  `npx skills add`. It is a fork of `tt-a1i/archify` 2.16.0 with every layout ceiling raised to 200,
+  automatic row-block wrapping for wide lifecycles, content-derived viewBox in every type, and the
+  upstream update channel removed. `skills/schematic/FORK.md` records every local change;
+  `UPSTREAM-BASELINE.sha256` pins the pristine tree so drift is one command away.
+- **Upstream archify must not be installed.** Its `dataflow` caps at 5 stages and rejects the specs
+  this kit generates. `kit-doctor` fails when `.claude/skills/archify` exists.
+- **`templates/subproject/tools/dataflow/`** — call-graph extractor driven by the TypeScript
+  compiler API. `paths` walks backwards from a write site to every entry point; `schematic` emits a
+  ready dataflow spec. `flow-explainer` gains Phase 5b, which makes it mandatory for any
+  "where is this field written" question.
+- CI validates with the vendored skill — no clone, no network, no upstream drift.
+- The name is generic on purpose: the previous working name came from the first stack this was
+  built in, which does not belong in a kit meant for any stack. The binary keeps its upstream name
+  (`bin/archify.mjs`), and so does the viewer's `Archify.*` JS namespace — ~400 references across
+  the template and 23 test files, renamed for no reader-visible gain.
+
+### Migration
+
+1. Copy the skill in and delete the old one:
+   `rsync -a --exclude node_modules <KIT>/skills/schematic/ .claude/skills/schematic/`, then delete
+   `.claude/skills/archify`.
+2. Repoint every reference from `.claude/skills/archify/bin/archify.mjs` to
+   `.claude/skills/schematic/bin/archify.mjs` — agents, `rules/conventions.md`, `ARCHITECTURE.md`.
+3. Drop the `archify` entry from `skills-lock.json`; it no longer records an installed skill.
+4. Rewrite `.claude/kit-manifest.json`: `skills.schematic` with a file-tree digest (SETUP.md
+   "Record the install manifest"), no `skills.archify`.
+5. TypeScript services: copy `templates/subproject/tools/dataflow/` next to the service's
+   `tsconfig.json` and `chmod +x tools/dataflow/bin/dataflow.mjs`.
+6. Re-deliver any diagram whose spec named the old skill, and re-run `scripts/kit-doctor.sh`.
+
 ## 0.4.0 — 2026-09-01
 
 Install/update hardening: manifest, managed blocks, kit-doctor, CI.

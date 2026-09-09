@@ -23,11 +23,13 @@ It is **documentation + templates**, not an installer. The work of standing it u
   relations with **schematic** (interactive HTML diagrams in `diagrams/`, a companion `.md` per schema).
 - **A workflow mandate** — lavish-plan-first (plans are visual HTML artifacts reviewed and approved
   in the browser via **lavish**), verification-before-done, baked into the rules.
-- **Two umbrella skills** — **schematic**, vendored in this kit under `skills/` (a fork of
-  [`tt-a1i/archify`](https://github.com/tt-a1i/archify) with every layout ceiling raised to 200; see
-  `skills/schematic/FORK.md`), and [`kunchenguid/lavish-axi`](https://github.com/kunchenguid/lavish-axi),
-  installed at setup time via `npx skills add`. Do **not** install upstream archify alongside —
-  `kit-doctor` fails if you do, because its 5-stage dataflow cap rejects specs this kit generates.
+- **Two umbrella skills, installed two different ways** — **schematic** is vendored here under
+  `skills/` and copied into a stack (a fork of [`tt-a1i/archify`](https://github.com/tt-a1i/archify)
+  with every layout ceiling raised to 200; `skills/schematic/FORK.md` records every change), while
+  [`kunchenguid/lavish-axi`](https://github.com/kunchenguid/lavish-axi) is pulled fresh with
+  `npx skills add` because it is upstream code this kit does not modify. Do **not** install upstream
+  archify alongside — `kit-doctor` fails if you do, because its 5-stage dataflow cap rejects the
+  specs this kit generates.
 
 ## Architecture
 

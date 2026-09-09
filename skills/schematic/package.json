@@ -1,6 +1,6 @@
 {
-  "name": "archify",
-  "version": "2.16.0",
+  "name": "schematic",
+  "version": "2.16.0-kit.1",
   "private": true,
   "type": "module",
   "description": "JSON-IR diagram renderers (architecture / workflow / sequence / dataflow / lifecycle).",

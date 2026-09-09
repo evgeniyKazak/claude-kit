@@ -1,7 +1,7 @@
 import { ENTRY_NODE_TYPE } from './entrypoints.mjs';
 
 /**
- * Turn a `paths` result into an archify dataflow specification.
+ * Turn a `paths` result into a schematic dataflow specification.
  *
  * The mapping is a layered DAG, right-aligned on the write site: a node's stage is
  * its distance from the target, so every path converges on the same final column
@@ -67,7 +67,7 @@ const slug = (s, fallback) => {
   return /^[a-zA-Z]/.test(cleaned) ? cleaned : `${fallback}${cleaned}`;
 };
 
-/** Node ids must match archify's identifier pattern, and file:offset does not. */
+/** Node ids must match the schema's identifier pattern, and file:offset does not. */
 function idFactory() {
   const used = new Map();
   return (node) => {
@@ -81,7 +81,7 @@ function idFactory() {
 const looksLikeWrite = (node) =>
   /repository|repo$/i.test(node.class ?? '') || /^(save|insert|update|upsert|delete|remove)/i.test(node.name);
 
-export function emitArchify(result, opts = {}) {
+export function emitSchematic(result, opts = {}) {
   const { title = null, maxPaths = 12, quality = 'standard', storeLabel = null } = opts;
 
   const byId = new Map(result.nodes.map((n) => [n.id, n]));
@@ -148,13 +148,13 @@ export function emitArchify(result, opts = {}) {
 
   // --- nodes ------------------------------------------------------------------
   const mkId = idFactory();
-  const archifyId = new Map();
+  const specId = new Map();
   const nodes = [];
   for (const id of stageOf.keys()) {
     const n = byId.get(id);
     if (!n) continue;
     const aid = mkId(n);
-    archifyId.set(id, aid);
+    specId.set(id, aid);
     // The method carries the meaning; its class is context and moves to the
     // sublabel, which measures at roughly half the cost per character.
     const fitted = fitNodeText(n.name, n.entry ? n.entry.label : (n.class ?? n.unit));
@@ -195,13 +195,13 @@ export function emitArchify(result, opts = {}) {
       emitted.add(key);
       const edge = result.edges.find((e) => e.from === from && e.to === to);
       // The callee's method name is already the target node's label, so repeating
-      // it on the edge is the redundant wording archify tells you to omit. The one
+      // it on the edge is the redundant wording the diagram contract tells you to omit. The one
       // fact the two nodes do not carry is where the call is written, so the edge
       // says that instead.
       const flow = {
-        id: slug(`f_${archifyId.get(from)}_${archifyId.get(to)}`, 'f').slice(0, 70),
-        from: archifyId.get(from),
-        to: archifyId.get(to),
+        id: slug(`f_${specId.get(from)}_${specId.get(to)}`, 'f').slice(0, 70),
+        from: specId.get(from),
+        to: specId.get(to),
         label: edge ? `:${edge.at.split(':').pop()}` : 'calls',
         variant: i === 0 ? 'emphasis' : 'default',
       };
@@ -210,7 +210,7 @@ export function emitArchify(result, opts = {}) {
   }
   flows.push({
     id: 'f_write',
-    from: archifyId.get(target.id),
+    from: specId.get(target.id),
     to: storeId,
     label: looksLikeWrite(target) ? 'write' : 'query',
     variant: 'emphasis',
@@ -232,7 +232,7 @@ export function emitArchify(result, opts = {}) {
   const views = kept.slice(0, 5).map((p, i) => ({
     id: `route-${i + 1}`,
     label: p.entry.label.slice(0, 48),
-    focus: p.nodes.map((id) => archifyId.get(id)).filter(Boolean).concat(storeId),
+    focus: p.nodes.map((id) => specId.get(id)).filter(Boolean).concat(storeId),
     note: `${p.entry.unit}: ${p.entry.label}`.slice(0, 140),
   }));
 

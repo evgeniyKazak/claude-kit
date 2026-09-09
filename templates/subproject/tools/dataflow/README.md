@@ -8,7 +8,7 @@ protocol and drives the compiler API directly, so it can walk the answers
 recursively and emit a nested document instead of one hop at a time.
 
 Intended consumer: the `flow-explainer` agent and `docs/data-flows/`. The JSON is
-the raw material for an archify dataflow diagram — it establishes *what actually
+the raw material for a schematic dataflow diagram — it establishes *what actually
 calls what*, so the diagram is derived from the type system rather than from
 reading code by hand.
 
@@ -230,7 +230,7 @@ Two smaller caveats:
 - Persistent `tsserver` daemon, to amortise the 13 s repo-scope build across many
   queries.
 - The decorator/string-contract pass that joins the far side of a `boundary`.
-- Direct emission of archify `dataflow.schema.json` — currently a separate
+- Direct emission of the schematic `dataflow.schema.json` — currently a separate
   transform step from this JSON.
 
 ## Layout

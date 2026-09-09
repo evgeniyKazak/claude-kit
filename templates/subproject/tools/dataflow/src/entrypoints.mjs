@@ -110,7 +110,7 @@ export function entryPointOf(decl) {
   return null;
 }
 
-/** Entry-point kinds get a distinct archify node type so the diagram reads at a glance. */
+/** Entry-point kinds get a distinct schematic node type so the diagram reads at a glance. */
 export const ENTRY_NODE_TYPE = {
   'http.in': 'frontend',
   'queue.amqp.in': 'messagebus',
